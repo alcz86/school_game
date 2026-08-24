@@ -883,6 +883,14 @@ Przedstaw pełną listę w formacie `en — pl`, pogrupowaną po unitach, plus o
 
 - [ ] **Step 5: Napisz `dane/slowka.js` z zatwierdzoną listą**
 
+> **UWAGA — poniższy blok jest szkieletem SPRZED dodania wyboru zakresu rozdziałów.**
+> Wiążące są sekcja **Interfaces** tego taska i testy z kroku 1, nie ten blok. Szkielet
+> nie zna `rozdzialy()`, nie ma piątego argumentu `zakres`, eksportuje tylko
+> `{ ZESTAWY, generuj }` i losuje dystraktory z całego zestawu zamiast z zakresu.
+> Skopiowany dosłownie daje cztery czerwone testy. Użyj go jako punktu wyjścia dla
+> struktury pliku, nie jako gotowej implementacji. Krok 6 mówi „5 passing" — testów
+> słówek jest dziewięć.
+
 ```js
 (function () {
   const ZESTAWY = [
