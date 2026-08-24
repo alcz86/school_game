@@ -38,3 +38,15 @@ h1 { font-size: clamp(1.75rem, 7vw, 2.5rem); text-align: center; margin: .5rem 0
 }
 .link-rodzic:hover { opacity: 1; }
 @media (min-width: 480px) { .kafle { grid-template-columns: 1fr; } }
+
+.wstecz {
+  display: inline-flex; align-items: center;
+  min-height: 44px; min-width: 44px; padding: .5rem 1rem;
+  font-size: 1rem; font-weight: 600;
+  color: var(--tekst); background: transparent;
+  border: 1px solid rgba(255,255,255,.25); border-radius: 12px; cursor: pointer;
+  margin-bottom: 1rem;
+}
+.wstecz:hover, .wstecz:focus-visible { border-color: var(--akcent); outline: none; }
+#ekran-wybor-poziomu h2 { margin: .25rem 0 1rem; }
+.kafel-poziom small { opacity: .75; font-weight: 400; }
