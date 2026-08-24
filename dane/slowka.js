@@ -225,6 +225,34 @@
     return slowa.slice();
   }
 
+  function wylosujWazone(pozycje) {
+    const suma = pozycje.reduce((s, p) => s + p.waga, 0);
+    let los = Math.random() * suma;
+    for (const p of pozycje) {
+      los -= p.waga;
+      if (los < 0) return p.slowo;
+    }
+    return pozycje[pozycje.length - 1].slowo;
+  }
+
+  function zbudujPytanie(idZestawu, tryb, material, w) {
+    let warianty = null;
+    if (tryb === 'wybor') {
+      // Gdy zakres ma mniej niż 4 słowa, zwracamy tyle wariantów, ile się da.
+      // Poprawna odpowiedź jest wśród nich zawsze. Brak pętli while — przy
+      // ubogim zakresie zapętliłaby się i zawiesiła grę.
+      const inne = przetasuj(material.filter((x) => x.en.toLowerCase() !== w.en.toLowerCase()));
+      warianty = przetasuj([w.en].concat(inne.slice(0, 3).map((x) => x.en)));
+    }
+    return {
+      id: idZestawu + ':' + w.en,
+      tresc: w.pl,
+      odpowiedz: w.en,
+      wyjasnienie: w.pl + ' — ' + w.en,
+      warianty,
+    };
+  }
+
   function generuj(idZestawu, ile, tryb, wagi, zakres) {
     const zestaw = ZESTAWY.find((z) => z.id === idZestawu);
     if (!zestaw) return [];
@@ -236,26 +264,22 @@
     if (!material.length) return [];
 
     const pula = przetasuj(material.slice());
-    if (wagi) pula.sort((a, b) => (wagi[idZestawu + ':' + b.en] || 0) - (wagi[idZestawu + ':' + a.en] || 0));
+
+    // Pula wcześniej mylonych — TYLKO z bieżącego zakresu (spec: słówko z rozdziału 8
+    // nie może wpaść do rundy "tylko rozdział 3" tylko dlatego, że jest często mylone).
+    const pulaMylonych = [];
+    if (wagi) {
+      for (const w of material) {
+        const waga = wagi[idZestawu + ':' + w.en];
+        if (waga > 0) pulaMylonych.push({ waga, slowo: w });
+      }
+    }
 
     const pytania = [];
     for (let i = 0; i < ile; i++) {
-      const w = pula[i % pula.length];
-      let warianty = null;
-      if (tryb === 'wybor') {
-        // Gdy zakres ma mniej niż 4 słowa, zwracamy tyle wariantów, ile się da.
-        // Poprawna odpowiedź jest wśród nich zawsze. Brak pętli while — przy
-        // ubogim zakresie zapętliłaby się i zawiesiła grę.
-        const inne = przetasuj(material.filter((x) => x.en.toLowerCase() !== w.en.toLowerCase()));
-        warianty = przetasuj([w.en].concat(inne.slice(0, 3).map((x) => x.en)));
-      }
-      pytania.push({
-        id: idZestawu + ':' + w.en,
-        tresc: w.pl,
-        odpowiedz: w.en,
-        wyjasnienie: w.pl + ' — ' + w.en,
-        warianty,
-      });
+      // co trzecie pytanie ciągniemy z puli wcześniej mylonych (ważone wg liczby błędów), jeśli jakaś jest
+      const w = (pulaMylonych.length && i % 3 === 1) ? wylosujWazone(pulaMylonych) : pula[i % pula.length];
+      pytania.push(zbudujPytanie(idZestawu, tryb, material, w));
     }
     return pytania;
   }

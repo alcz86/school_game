@@ -145,6 +145,22 @@ test('zakres podany stringiem znaczy to samo co liczbą (wartości z DOM są str
   }
 });
 
+test('wagi zwiększają częstość mylonego słówka', () => {
+  const wagi = { 'klasa2-powtorka:house': 100 };
+  const pytania = s.generuj('klasa2-powtorka', 300, 'wpisywanie', wagi);
+  const ile = pytania.filter((p) => p.odpowiedz === 'house').length;
+  assert.ok(ile >= 20, `oczekiwano częstego "house", było ${ile}`);
+});
+
+test('wazone slowko spoza zakresu nie wchodzi do rundy z wezszym zakresem', () => {
+  // 'house' jest w unicie 1. Zawężamy do unitu innego niż 1 (np. tylko: 5) —
+  // mimo wysokiej wagi, 'house' nie może się pojawić, bo jest spoza zakresu.
+  const wagi = { 'klasa2-powtorka:house': 100 };
+  const pytania = s.generuj('klasa2-powtorka', DUZO, 'wpisywanie', wagi, { tylko: 5 });
+  assert.ok(pytania.every((p) => p.odpowiedz !== 'house'), '"house" nie powinno wejść do zakresu tylko:5');
+  assert.ok(pytania.every((p) => unitPo.get(p.odpowiedz) === 5), 'zakres musi zostać zachowany mimo wag spoza niego');
+});
+
 test('nieliczbowy zakres znaczy brak zakresu, a nie rozdział 0', () => {
   // Pułapka: Number(null) === 0, a 0 to prawidłowy rozdział (sekcja "Hello").
   // Gdyby koercja szła przed sprawdzeniem typu, { tylko: null } udawałoby { tylko: 0 }

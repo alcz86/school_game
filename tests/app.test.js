@@ -47,3 +47,12 @@ test('pytaniaDla dla nieistniejacego poziomu zwraca pusta tablice, nie wybucha',
   assert.deepStrictEqual(app.pytaniaDla('angielski', 'nie-ma-takiego', 10), []);
   assert.deepStrictEqual(app.pytaniaDla('nie-ma-trybu', 'cokolwiek', 10), []);
 });
+
+test('pytaniaDla dla nieznanego poziomu zwraca [] we WSZYSTKICH trybach', () => {
+  // Krytyczny przypadek: matematyka.generuj cicho fallbackuje na "trudne" dla
+  // nieznanego idPoziomu — guard MUSI siedzieć w pytaniaDla, przed delegacją,
+  // inaczej literówka w poziomie po cichu uruchamia rundę z niewłaściwym materiałem.
+  assert.deepStrictEqual(app.pytaniaDla('matematyka', 'nie-ma-takiego-poziomu', 5), []);
+  assert.deepStrictEqual(app.pytaniaDla('ortografia', 'nie-ma-takiego-poziomu', 5), []);
+  assert.deepStrictEqual(app.pytaniaDla('angielski', 'nie-ma-takiego-poziomu', 5), []);
+});

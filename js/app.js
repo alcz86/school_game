@@ -32,6 +32,10 @@
   }
 
   function pytaniaDla(tryb, idPoziomu, ile, zakres) {
+    // Guard musi weryfikować idPoziomu tutaj, przed delegacją — matematyka.generuj
+    // cicho fallbackuje na "trudne" dla nieznanego id i zwróciłaby pełnowartościowe
+    // pytania zamiast []. pytaniaDla ma być jedynym punktem kontroli.
+    if (!poziomyDla(tryb).some((p) => p.id === idPoziomu)) return [];
     const w = postepy.wagi(tryb, idPoziomu);
     if (tryb === 'matematyka') return matematyka.generuj(idPoziomu, ile, w);
     if (tryb === 'ortografia') return ortografia.generuj(idPoziomu, ile, w);
