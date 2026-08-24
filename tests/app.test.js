@@ -82,3 +82,121 @@ test('pytaniaDla dla nieznanego poziomu zwraca [] we WSZYSTKICH trybach', () => 
   assert.deepStrictEqual(app.pytaniaDla('ortografia', 'nie-ma-takiego-poziomu', 5), []);
   assert.deepStrictEqual(app.pytaniaDla('angielski', 'nie-ma-takiego-poziomu', 5), []);
 });
+
+// ------------------------------------------------------- ekran rodzica (Task 9)
+
+// Sztuczne statystyki w kształcie zwracanym przez postepy.statystyki().
+// W Node nie ma localStorage, więc realny magazyn jest pusty — funkcje ekranu
+// rodzica są czystymi funkcjami od `stat` właśnie po to, żeby dały się przetestować.
+const STAT = {
+  tryby: {
+    matematyka: { trudne: { poprawne: 5, wszystkie: 10, procent: 50 } },
+    ortografia: { 'o-u': { poprawne: 9, wszystkie: 10, procent: 90 } },
+    angielski: { 'klasa2-powtorka': { poprawne: 6, wszystkie: 8, procent: 75 } },
+  },
+  najczestszeBledy: [
+    { tryb: 'matematyka', zestaw: 'trudne', id: '7x8', bledy: 4 },
+    { tryb: 'matematyka', zestaw: 'dzielenie', id: '56:8', bledy: 3 },
+    { tryb: 'ortografia', zestaw: 'o-u', id: 'o-u:król', bledy: 2 },
+    { tryb: 'angielski', zestaw: 'klasa2-powtorka', id: 'klasa2-powtorka:chair', bledy: 1 },
+  ],
+  dniZRzedu: 3,
+  ostatnioGrane: '2026-08-24',
+};
+
+test('opisBledu tlumaczy identyfikatory na opis po ludzku', () => {
+  assert.strictEqual(app.opisBledu('matematyka', 'trudne', '7x8'), '7 × 8');
+  assert.strictEqual(app.opisBledu('matematyka', 'dzielenie', '56:8'), '56 : 8');
+  assert.strictEqual(app.opisBledu('ortografia', 'o-u', 'o-u:król'), 'król (ó/u)');
+  assert.strictEqual(app.opisBledu('angielski', 'klasa2-powtorka', 'klasa2-powtorka:chair'), 'chair — krzesło');
+});
+
+test('opisBledu nie zostawia surowego identyfikatora z prefiksem zestawu', () => {
+  // Surowy klucz techniczny na ekranie rodzica jest bezuzyteczny — Aleksandra ma
+  // zobaczyc, czego uczyc syna, a nie klucz z localStorage.
+  for (const b of STAT.najczestszeBledy) {
+    const opis = app.opisBledu(b.tryb, b.zestaw, b.id);
+    assert.ok(!opis.includes(b.zestaw + ':'), 'prefiks zestawu zostal w opisie: ' + opis);
+    assert.ok(!/^\d+x\d+$/.test(opis), 'surowy identyfikator matematyczny: ' + opis);
+  }
+});
+
+test('opisBledu nie wybucha na nieznanych danych', () => {
+  assert.strictEqual(app.opisBledu('nie-ma', 'nie-ma', 'cos'), 'cos');
+  assert.strictEqual(app.opisBledu('angielski', 'nie-ma-zestawu', 'x'), 'x');
+  assert.strictEqual(app.opisBledu('matematyka', 'trudne', null), '');
+});
+
+test('nazwaPoziomu zwraca czytelna nazwe, nie identyfikator', () => {
+  assert.strictEqual(app.nazwaPoziomu('matematyka', 'trudne'), 'Trudne');
+  assert.strictEqual(app.nazwaPoziomu('ortografia', 'o-u'), 'ó czy u');
+  assert.strictEqual(app.nazwaPoziomu('angielski', 'klasa2-powtorka'), 'Klasa 2 — powtórka');
+  assert.strictEqual(app.nazwaPoziomu('matematyka', 'nie-ma'), 'nie-ma');
+});
+
+test('wierszeSkutecznosci buduje wiersze dla wszystkich trybow', () => {
+  const w = app.wierszeSkutecznosci(STAT);
+  assert.strictEqual(w.length, 3);
+  assert.deepStrictEqual(w.map((x) => x.tryb), ['matematyka', 'ortografia', 'angielski']);
+  assert.strictEqual(w[0].procent, 50);
+  assert.strictEqual(w[0].nazwaPoziomu, 'Trudne');
+});
+
+test('wierszeSkutecznosci pomija wpisy bez odpowiedzi — zadnych 0/0 ani NaN%', () => {
+  const pusty = { tryby: { matematyka: { trudne: { poprawne: 0, wszystkie: 0, procent: 0 } } } };
+  assert.deepStrictEqual(app.wierszeSkutecznosci(pusty), []);
+  assert.deepStrictEqual(app.wierszeSkutecznosci({ tryby: {} }), []);
+  assert.deepStrictEqual(app.wierszeSkutecznosci({}), []);
+});
+
+test('wierszeSkutecznosci trzyma kolejnosc poziomow z danych, nie z localStorage', () => {
+  const stat = { tryby: { matematyka: {
+    mieszane: { poprawne: 1, wszystkie: 2, procent: 50 },
+    latwe:    { poprawne: 1, wszystkie: 2, procent: 50 },
+  } } };
+  assert.deepStrictEqual(app.wierszeSkutecznosci(stat).map((w) => w.poziom), ['latwe', 'mieszane']);
+});
+
+test('wierszeAngielski rozdziela powtorke klasy 2 od nowego materialu', () => {
+  const g = app.wierszeAngielski(STAT);
+  assert.strictEqual(g.length, 2);
+  assert.strictEqual(g[0].nazwa, 'Powtórka (klasa 2)');
+  assert.strictEqual(g[0].wszystkie, 8);
+  assert.strictEqual(g[0].procent, 75);
+  assert.strictEqual(g[1].nazwa, 'Klasa 3');
+  assert.strictEqual(g[1].wszystkie, 0);
+  // Brak danych to null, nie 0% i nie NaN — inaczej ekran klamalby, ze syn ma 0%.
+  assert.strictEqual(g[1].procent, null);
+});
+
+test('wierszeAngielski przypisuje kazdy zestaw do wlasciwej grupy wg pola klasa', () => {
+  // Test rosnie sam wraz z danymi: dzis zestawow klasy 3 jeszcze nie ma
+  // (sa zakomentowane w dane/slowka.js), wiec sprawdza glownie klase 2.
+  // Po dopisaniu pierwszego unitu klasy 3 zaczyna pilnowac obu grup.
+  const stat = { tryby: { angielski: {} } };
+  for (const z of slowka.ZESTAWY) stat.tryby.angielski[z.id] = { poprawne: 1, wszystkie: 2, procent: 50 };
+  const g = app.wierszeAngielski(stat);
+  const k2 = slowka.ZESTAWY.filter((z) => z.klasa < 3).length;
+  const k3 = slowka.ZESTAWY.filter((z) => z.klasa >= 3).length;
+  assert.strictEqual(g[0].wszystkie, k2 * 2);
+  assert.strictEqual(g[1].wszystkie, k3 * 2);
+});
+
+test('formatujDate i formatujDni sa po polsku i odporne na smieci', () => {
+  assert.strictEqual(app.formatujDate('2026-08-24'), '24.08.2026');
+  assert.strictEqual(app.formatujDate(null), '');
+  assert.strictEqual(app.formatujDni(1), '1 dzień');
+  assert.strictEqual(app.formatujDni(3), '3 dni');
+});
+
+test('prog wyrozniania slabego wyniku to 60% (spec §4)', () => {
+  assert.strictEqual(app.PROG_SLABY, 60);
+});
+
+test('komunikat o braku danych jest po polsku i niepusty', () => {
+  assert.ok(app.BRAK_DANYCH && app.BRAK_DANYCH.length > 10);
+});
+
+test('renderujRodzica bez DOM nie wybucha, tylko zwraca false', () => {
+  assert.strictEqual(app.renderujRodzica(), false);
+});

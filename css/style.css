@@ -37,6 +37,9 @@ h1 { font-size: clamp(1.75rem, 7vw, 2.5rem); text-align: center; margin: .5rem 0
   opacity: .4; cursor: pointer;
 }
 .link-rodzic:hover { opacity: 1; }
+/* Spójność z kaflami menu — bez tego przycisk był jedynym elementem gry
+   niewidocznym przy nawigacji klawiaturą. */
+.link-rodzic:focus-visible { opacity: 1; border-color: var(--akcent); outline: none; }
 @media (min-width: 480px) { .kafle { grid-template-columns: 1fr; } }
 
 .wstecz {
@@ -148,3 +151,33 @@ h1 { font-size: clamp(1.75rem, 7vw, 2.5rem); text-align: center; margin: .5rem 0
 .pomylka-odp { color: var(--dobrze); font-weight: 700; overflow-wrap: anywhere; }
 .przyciski-wyniku { display: grid; gap: .75rem; margin-top: 1.5rem; }
 .kafel-akcja { justify-content: center; min-height: 60px; }
+
+/* ----------------------------------------------------- ekran rodzica */
+#ekran-rodzic h2 { margin: .25rem 0 1rem; }
+#ekran-rodzic h3 { margin: 1.5rem 0 .5rem; font-size: 1.05rem; opacity: .85; }
+.komunikat-info { background: rgba(255,255,255,.07); border-color: rgba(255,255,255,.25); }
+.seria { margin: 0; padding: .75rem 1rem; background: var(--karta); border-radius: 14px; }
+.tabela-postepy {
+  width: 100%; border-collapse: collapse;
+  background: var(--karta); border-radius: 14px; overflow: hidden;
+}
+.tabela-postepy th, .tabela-postepy td {
+  padding: .55rem .6rem; text-align: left; font-size: .95rem;
+  border-bottom: 1px solid rgba(255,255,255,.08); overflow-wrap: anywhere;
+}
+.tabela-postepy tr:last-child td { border-bottom: none; }
+.tabela-postepy th { font-size: .8rem; text-transform: uppercase; letter-spacing: .04em; opacity: .7; }
+.td-procent { font-weight: 700; text-align: right; white-space: nowrap; }
+.procent-slaby { color: var(--zle); }
+.td-brak { font-weight: 400; opacity: .55; }
+.td-pozycja { font-weight: 700; font-size: 1.05rem; }
+.td-skad { opacity: .7; font-size: .85rem; }
+.td-bledy { text-align: right; font-weight: 700; color: var(--zle); white-space: nowrap; }
+.kafel-reset { border-color: var(--zle); color: var(--zle); font-size: 1.05rem; }
+.kafel-reset:hover, .kafel-reset:focus-visible { border-color: var(--zle); background: rgba(255,122,122,.15); }
+@media (max-width: 380px) {
+  .tabela-postepy th, .tabela-postepy td { padding: .45rem .35rem; font-size: .85rem; }
+  /* Na 320 px wersaliki z odstępem rozpychały nagłówki i łamały je w środku słowa
+     („WY / NIK"). Przy tej szerokości liczy się czytelność, nie ozdoba. */
+  .tabela-postepy th { text-transform: none; letter-spacing: 0; font-size: .78rem; }
+}

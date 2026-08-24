@@ -291,6 +291,19 @@
         '</div>';
     }
 
+    // Wynik walki zapisujemy TU, synchronicznie, w momencie w którym walka się
+    // kończy — a nie w callbacku informacji zwrotnej.
+    //
+    // Wcześniej zapis siedział w setTimeout, za strażnikiem ekranWalkiWidoczny().
+    // Runda doprowadzona do zera życia bossa i porzucona klikiem „← Wróć" w trakcie
+    // ostatniej animacji NIE zapisywała się w postępach — i to z dwóch niezależnych
+    // powodów: pokazEkran woła anulujFeedback(), które robi clearTimeout, więc
+    // callback w ogóle nie startował; a nawet gdyby wystartował, strażnik widoczności
+    // ucinał go przed zapisem. Przeniesienie zapisu przed strażnik wewnątrz callbacku
+    // naprawiłoby tylko drugi z tych powodów — stąd zapis synchroniczny tutaj.
+    // Ekran rodzica pokazuje te dane, więc zaniżony licznik walk był realną stratą.
+    if (nowy.skonczona) postepy.zapiszWalke(tryb, idPoziomu, nowy.wynik);
+
     wpisMat = '';
     blokada = true;
     renderujWalke(feedback);
@@ -304,12 +317,8 @@
       // Blokada zdejmowana ZAWSZE, nawet gdy render rzuci — inaczej zacięłaby się
       // na stałe i dziecko zostałoby z martwym ekranem.
       try {
-        if (stanWalki && stanWalki.skonczona) {
-          postepy.zapiszWalke(kontekst.tryb, kontekst.idPoziomu, stanWalki.wynik);
-          renderujWynik();
-        } else {
-          renderujWalke();
-        }
+        if (stanWalki && stanWalki.skonczona) renderujWynik();
+        else renderujWalke();
       } finally {
         odblokuj();
       }
@@ -357,6 +366,184 @@
     pokazEkran('wynik');
   }
 
+  // ------------------------------------------------------ ekran rodzica
+
+  const NAZWY_TRYBOW = {
+    matematyka: 'Tabliczka mnożenia',
+    ortografia: 'Ortografia',
+    angielski: 'Angielski',
+  };
+  const PROG_SLABY = 60;   // spec §4 / brief: poniżej tego progu wynik wyróżniamy na czerwono
+  const BRAK_DANYCH = 'Jeszcze brak danych — zagraj pierwszą rundę.';
+
+  // Czytelna nazwa poziomu/zestawu. Aleksandra nie ma widzieć `o-u` ani
+  // `klasa2-powtorka` — to klucze techniczne, bezużyteczne na tym ekranie.
+  function nazwaPoziomu(tryb, idPoziomu) {
+    const p = poziomyDla(tryb).find((x) => x.id === idPoziomu);
+    return p ? p.nazwa : idPoziomu;
+  }
+
+  // Zamiana identyfikatora pomylonej pozycji na opis po ludzku.
+  // Kształty identyfikatorów (patrz dane/*.js):
+  //   matematyka  '7x8'  |  '56:8'
+  //   ortografia  'o-u:król'          (prefiks = id zestawu)
+  //   angielski   'klasa2-powtorka:bread'
+  function opisBledu(tryb, idZestawu, idPytania) {
+    const surowy = String(idPytania == null ? '' : idPytania);
+    if (tryb === 'matematyka') {
+      const mn = surowy.match(/^(\d+)x(\d+)$/);
+      if (mn) return mn[1] + ' × ' + mn[2];
+      const dz = surowy.match(/^(\d+):(\d+)$/);
+      if (dz) return dz[1] + ' : ' + dz[2];
+      return surowy;
+    }
+    // Prefiks zestawu jest w identyfikatorze powtórzony — obcinamy go, ale tylko
+    // gdy faktycznie tam jest (dane mogą przyjść ze starszego zapisu).
+    const prefiks = idZestawu + ':';
+    const reszta = surowy.indexOf(prefiks) === 0 ? surowy.slice(prefiks.length) : surowy;
+    if (tryb === 'ortografia') {
+      const zestaw = ortografia.ZESTAWY.find((z) => z.id === idZestawu);
+      const para = zestaw ? zestaw.warianty.join('/') : null;
+      return para ? reszta + ' (' + para + ')' : reszta;
+    }
+    if (tryb === 'angielski') {
+      const zestaw = slowka.ZESTAWY.find((z) => z.id === idZestawu);
+      const slowo = zestaw && zestaw.slowa.find((s) => s.en === reszta);
+      return slowo ? reszta + ' — ' + slowo.pl : reszta;
+    }
+    return reszta;
+  }
+
+  // Płaska lista wierszy tabeli skuteczności, w stałej kolejności trybów
+  // (a wewnątrz trybu — w kolejności poziomów z danych, nie z localStorage).
+  function wierszeSkutecznosci(stat) {
+    const wiersze = [];
+    for (const tryb of ['matematyka', 'ortografia', 'angielski']) {
+      const wTrybie = (stat.tryby && stat.tryby[tryb]) || {};
+      const kolejnosc = poziomyDla(tryb).map((p) => p.id);
+      const idki = Object.keys(wTrybie)
+        .sort((a, b) => {
+          const ia = kolejnosc.indexOf(a), ib = kolejnosc.indexOf(b);
+          return (ia < 0 ? 99 : ia) - (ib < 0 ? 99 : ib);
+        });
+      for (const id of idki) {
+        const w = wTrybie[id];
+        if (!w || !w.wszystkie) continue;   // bez 0/0 i bez NaN%
+        wiersze.push({
+          tryb, nazwaTrybu: NAZWY_TRYBOW[tryb] || tryb,
+          poziom: id, nazwaPoziomu: nazwaPoziomu(tryb, id),
+          poprawne: w.poprawne, wszystkie: w.wszystkie, procent: w.procent,
+        });
+      }
+    }
+    return wiersze;
+  }
+
+  // Spec §4: powtórka (klasa 2) osobno od nowego materiału (klasa 3+).
+  // Bez tego nie widać, czy stary materiał się trzyma, gdy dochodzi nowy —
+  // z samej listy zestawów tego nie da się odczytać.
+  function wierszeAngielski(stat) {
+    const wTrybie = (stat.tryby && stat.tryby.angielski) || {};
+    const grupy = [
+      { klucz: 'powtorka', nazwa: 'Powtórka (klasa 2)', poprawne: 0, wszystkie: 0 },
+      { klucz: 'klasa3',   nazwa: 'Klasa 3',            poprawne: 0, wszystkie: 0 },
+    ];
+    for (const id of Object.keys(wTrybie)) {
+      const zestaw = slowka.ZESTAWY.find((z) => z.id === id);
+      if (!zestaw) continue;
+      const g = zestaw.klasa >= 3 ? grupy[1] : grupy[0];
+      g.poprawne += wTrybie[id].poprawne;
+      g.wszystkie += wTrybie[id].wszystkie;
+    }
+    return grupy.map((g) => ({
+      nazwa: g.nazwa,
+      poprawne: g.poprawne,
+      wszystkie: g.wszystkie,
+      procent: g.wszystkie ? Math.round((g.poprawne / g.wszystkie) * 100) : null,
+    }));
+  }
+
+  function formatujDate(iso) {
+    const m = String(iso || '').match(/^(\d{4})-(\d{2})-(\d{2})$/);
+    return m ? m[3] + '.' + m[2] + '.' + m[1] : String(iso || '');
+  }
+
+  function formatujDni(n) {
+    return n + (n === 1 ? ' dzień' : ' dni');
+  }
+
+  function komorkaProcent(procent) {
+    if (procent == null) return '<td class="td-procent td-brak">brak danych</td>';
+    const klasa = procent < PROG_SLABY ? ' procent-slaby' : '';
+    return '<td class="td-procent' + klasa + '">' + procent + '%</td>';
+  }
+
+  function renderujRodzica() {
+    if (typeof document === 'undefined') return false;
+    const sekcja = document.getElementById('ekran-rodzic');
+    if (!sekcja) return false;
+    const stat = postepy.statystyki();
+    const wiersze = wierszeSkutecznosci(stat);
+
+    let html = '<button class="wstecz" data-akcja="menu">← Wróć</button>' +
+      '<h2>Postępy</h2>';
+
+    if (!wiersze.length) {
+      html += '<p class="komunikat komunikat-info">' + esc(BRAK_DANYCH) + '</p>';
+      sekcja.innerHTML = html;
+      pokazEkran('rodzic');
+      return true;
+    }
+
+    html += '<p class="seria">🔥 Dni z rzędu: <strong>' + formatujDni(stat.dniZRzedu) + '</strong>' +
+      (stat.ostatnioGrane ? ' &nbsp;·&nbsp; ostatnia gra: <strong>' + esc(formatujDate(stat.ostatnioGrane)) + '</strong>' : '') +
+      '</p>';
+
+    html += '<h3>Skuteczność wg trybu i poziomu</h3>' +
+      '<table class="tabela-postepy"><thead><tr>' +
+      '<th>Tryb</th><th>Poziom</th><th>Wynik</th><th>Procent</th>' +
+      '</tr></thead><tbody>' +
+      wiersze.map((w) =>
+        '<tr><td>' + esc(w.nazwaTrybu) + '</td><td>' + esc(w.nazwaPoziomu) + '</td>' +
+        '<td>' + w.poprawne + ' / ' + w.wszystkie + '</td>' +
+        komorkaProcent(w.procent) + '</tr>').join('') +
+      '</tbody></table>';
+
+    const ang = wierszeAngielski(stat);
+    if (ang.some((g) => g.wszystkie)) {
+      html += '<h3>Angielski: powtórka a nowy materiał</h3>' +
+        '<table class="tabela-postepy"><thead><tr>' +
+        '<th>Materiał</th><th>Wynik</th><th>Procent</th>' +
+        '</tr></thead><tbody>' +
+        ang.map((g) =>
+          '<tr><td>' + esc(g.nazwa) + '</td>' +
+          '<td>' + (g.wszystkie ? g.poprawne + ' / ' + g.wszystkie : '—') + '</td>' +
+          komorkaProcent(g.procent) + '</tr>').join('') +
+        '</tbody></table>';
+    }
+
+    const bledy = (stat.najczestszeBledy || []).filter((b) => b && b.bledy > 0);
+    if (bledy.length) {
+      html += '<h3>Najczęściej mylone (' + bledy.length + ')</h3>' +
+        '<table class="tabela-postepy"><thead><tr>' +
+        '<th>Pozycja</th><th>Tryb i poziom</th><th>Pomyłki</th>' +
+        '</tr></thead><tbody>' +
+        bledy.map((b) =>
+          '<tr><td class="td-pozycja">' + esc(opisBledu(b.tryb, b.zestaw, b.id)) + '</td>' +
+          '<td class="td-skad">' + esc((NAZWY_TRYBOW[b.tryb] || b.tryb) + ' · ' + nazwaPoziomu(b.tryb, b.zestaw)) + '</td>' +
+          '<td class="td-bledy">' + b.bledy + '</td></tr>').join('') +
+        '</tbody></table>';
+    }
+
+    html += '<div class="przyciski-wyniku">' +
+      '<button class="kafel kafel-akcja kafel-reset" data-akcja="reset-postepy">🗑️ Wyczyść postępy</button>' +
+      '</div>';
+
+    sekcja.innerHTML = html;
+    pokazEkran('rodzic');
+    return true;
+  }
+
   // ------------------------------------------------------------- zdarzenia DOM
 
   function zatwierdzWpis() {
@@ -376,6 +563,19 @@
         const kafelMenu = e.target.closest('.kafel[data-tryb]');
         if (kafelMenu) {
           renderujWyborPoziomu(kafelMenu.dataset.tryb);
+          return;
+        }
+        if (e.target.closest('#btn-rodzic')) {
+          renderujRodzica();
+          return;
+        }
+        if (e.target.closest('[data-akcja="reset-postepy"]')) {
+          // confirm() celowo — to jedyna nieodwracalna akcja w całej grze.
+          const potwierdz = typeof window !== 'undefined' && window.confirm;
+          if (!potwierdz || window.confirm('Na pewno wyczyścić wszystkie postępy? Tego nie da się cofnąć.')) {
+            postepy.reset();
+            renderujRodzica();
+          }
           return;
         }
         const wstecz = e.target.closest('[data-akcja="menu"]');
@@ -448,8 +648,10 @@
   }
 
   const api = {
-    EKRANY, PYTAN_NA_RUNDE, BRAK_MATERIALU,
+    EKRANY, PYTAN_NA_RUNDE, BRAK_MATERIALU, BRAK_DANYCH, PROG_SLABY,
     pokazEkran, poziomyDla, pytaniaDla, postepy, rozpocznijWalke,
+    renderujRodzica, nazwaPoziomu, opisBledu, wierszeSkutecznosci, wierszeAngielski,
+    formatujDate, formatujDni,
   };
   if (typeof window !== 'undefined') {
     window.GRA = window.GRA || {};
