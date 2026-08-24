@@ -4,7 +4,7 @@
     { id: 'srednie',   nazwa: 'Rozpęd',       opis: 'mnożenie przez 3 i 4' },
     { id: 'trudne',    nazwa: 'Trudne',       opis: 'mnożenie przez 6, 7, 8 i 9' },
     { id: 'dzielenie', nazwa: 'Dzielenie',    opis: 'dzielenie w zakresie 100' },
-    { id: 'mieszane',  nazwa: 'Wszystko',     opis: 'mnożenie i dzielenie na przemian' },
+    { id: 'mieszane',  nazwa: 'Wszystko',     opis: 'mnożenie i dzielenie wymieszane' },
   ];
 
   const MNOZNIKI = {
@@ -53,15 +53,49 @@
     return pytanieMnozenie(a, b);
   }
 
+  function nalezyDoPoziomu(pytanie, idPoziomu) {
+    const [aStr, znak, bStr] = pytanie.tresc.split(' ');
+    const a = Number(aStr);
+    const b = Number(bStr);
+    if (idPoziomu === 'dzielenie') {
+      return znak === ':' && a <= 100 && b !== 0 && a % b === 0;
+    }
+    if (idPoziomu === 'mieszane') {
+      if (znak === ':') return a <= 100 && b !== 0 && a % b === 0;
+      return znak === '×' && MNOZNIKI.trudne.includes(a);
+    }
+    const mnozniki = MNOZNIKI[idPoziomu] || MNOZNIKI.trudne;
+    return znak === '×' && mnozniki.includes(a);
+  }
+
+  function wylosujWazone(pozycje) {
+    const suma = pozycje.reduce((s, p) => s + p.waga, 0);
+    let los = Math.random() * suma;
+    for (const p of pozycje) {
+      los -= p.waga;
+      if (los < 0) return p.pytanie;
+    }
+    return pozycje[pozycje.length - 1].pytanie;
+  }
+
   function generuj(idPoziomu, ile, wagi) {
     const pytania = [];
-    const trudne = wagi ? Object.keys(wagi).filter((k) => wagi[k] > 0) : [];
+    const pulaMylonych = [];
+    if (wagi) {
+      for (const id of Object.keys(wagi)) {
+        const waga = wagi[id];
+        if (waga <= 0) continue;
+        const pytanie = zId(id);
+        if (pytanie && nalezyDoPoziomu(pytanie, idPoziomu)) {
+          pulaMylonych.push({ waga, pytanie });
+        }
+      }
+    }
     for (let i = 0; i < ile; i++) {
-      // co trzecie pytanie ciągniemy z listy wcześniej mylonych, jeśli jakaś jest
-      if (trudne.length && i % 3 === 1) {
-        const id = losowy(trudne);
-        const odtworzone = zId(id);
-        if (odtworzone) { pytania.push(odtworzone); continue; }
+      // co trzecie pytanie ciągniemy z puli wcześniej mylonych (ważone wg liczby błędów), jeśli jakaś jest
+      if (pulaMylonych.length && i % 3 === 1) {
+        pytania.push(wylosujWazone(pulaMylonych));
+        continue;
       }
       pytania.push(jednoPytanie(idPoziomu));
     }

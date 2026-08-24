@@ -51,3 +51,25 @@ test('wagi zwiększają częstość mylonych działań', () => {
   const ile = pytania.filter((p) => p.id === '7x8').length;
   assert.ok(ile >= 5, `oczekiwano częstego 7x8, było ${ile}`);
 });
+
+test('wagi nie wciagaja dzialan spoza biezacego poziomu', () => {
+  for (const p of m.generuj('latwe', 60, { '7x8': 50 })) {
+    const [a, znak, b] = p.tresc.split(' ');
+    assert.strictEqual(znak, '×');
+    assert.ok(
+      [2, 5, 10].includes(Number(a)),
+      `"${p.tresc}" ma mnoznik spoza poziomu latwe`
+    );
+  }
+});
+
+test('czestosc rosnie proporcjonalnie do wagi', () => {
+  const wagi = { '7x8': 100, '6x6': 1 };
+  const pytania = m.generuj('trudne', 3000, wagi);
+  const czesto = pytania.filter((p) => p.id === '7x8').length;
+  const rzadko = pytania.filter((p) => p.id === '6x6').length;
+  assert.ok(
+    czesto > rzadko * 5,
+    `oczekiwano wyraznej przewagi 7x8, bylo ${czesto} vs ${rzadko}`
+  );
+});
