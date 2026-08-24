@@ -88,3 +88,43 @@ test('uszkodzone dane w magazynie nie wywracają gry', () => {
   const s = postepy.utworz(m).statystyki();
   assert.deepStrictEqual(s.najczestszeBledy, []);
 });
+
+const OBCE_KSZTALTY = [
+  '{to nie jest json',
+  'null',
+  '[]',
+  '42',
+  '"tekst"',
+  '{"odpowiedzi":"nie-obiekt"}',
+  '{"bledy":"nie-obiekt"}',
+  '{"dni":"nie-tablica"}',
+  '{"walki":"nie-tablica"}',
+  '{"odpowiedzi":null}',
+  '{"odpowiedzi":[]}',
+];
+
+for (const surowe of OBCE_KSZTALTY) {
+  test('obcy kształt danych w magazynie nie wywraca gry i nie gubi zapisu: ' + surowe, () => {
+    const m = magazynPamieciowy();
+    m.setItem('gra-szkolna-postepy', surowe);
+    const p = postepy.utworz(m);
+
+    const s = p.statystyki();
+    assert.deepStrictEqual(s.najczestszeBledy, []);
+    assert.strictEqual(s.dniZRzedu, 0);
+    for (const tryb of Object.keys(s.tryby)) {
+      for (const zestaw of Object.keys(s.tryby[tryb])) {
+        const cel = s.tryby[tryb][zestaw];
+        assert.ok(!Number.isNaN(cel.poprawne));
+        assert.ok(!Number.isNaN(cel.wszystkie));
+        assert.ok(!Number.isNaN(cel.procent));
+      }
+    }
+
+    assert.doesNotThrow(() => p.zapiszOdpowiedz('matematyka', 'trudne', '7x8', true));
+    const s2 = p.statystyki();
+    assert.strictEqual(s2.tryby.matematyka.trudne.wszystkie, 1);
+    assert.strictEqual(s2.tryby.matematyka.trudne.poprawne, 1);
+    assert.strictEqual(s2.tryby.matematyka.trudne.procent, 100);
+  });
+}

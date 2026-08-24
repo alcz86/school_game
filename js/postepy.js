@@ -8,13 +8,24 @@
   function utworz(magazyn) {
     const mag = magazyn || (typeof window !== 'undefined' ? window.localStorage : null);
 
+    function jestObiektem(v) {
+      return typeof v === 'object' && v !== null && !Array.isArray(v);
+    }
+
     function wczytaj() {
       if (!mag) return pustyStan();
       try {
         const surowe = mag.getItem(KLUCZ);
         if (!surowe) return pustyStan();
         const s = JSON.parse(surowe);
-        return Object.assign(pustyStan(), s);
+        const domyslny = pustyStan();
+        if (!jestObiektem(s)) return domyslny;
+        return {
+          odpowiedzi: jestObiektem(s.odpowiedzi) ? s.odpowiedzi : domyslny.odpowiedzi,
+          bledy: jestObiektem(s.bledy) ? s.bledy : domyslny.bledy,
+          walki: Array.isArray(s.walki) ? s.walki : domyslny.walki,
+          dni: Array.isArray(s.dni) ? s.dni : domyslny.dni,
+        };
       } catch (e) {
         return pustyStan();
       }
@@ -25,6 +36,9 @@
       try { mag.setItem(KLUCZ, JSON.stringify(stan)); } catch (e) { /* pełny magazyn — pomijamy */ }
     }
 
+    // Uwaga: '|' jest znakiem zastrzeżonym jako separator klucza tryb|zestaw|id.
+    // Identyfikatory pytań (tryb, zestaw, id) NIE MOGĄ zawierać znaku '|' —
+    // statystyki() i wagi() dzielą klucz przez split('|') bez ograniczenia liczby części.
     function klucz(tryb, zestaw, id) { return tryb + '|' + zestaw + '|' + id; }
 
     function zapiszOdpowiedz(tryb, zestaw, idPytania, poprawna) {
