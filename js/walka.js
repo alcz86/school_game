@@ -7,12 +7,14 @@
 
   function nowaWalka(pytania, opcje) {
     const zycieBossa = (opcje && opcje.zycieBossa) || 10;
+    const pula = pytania.slice();
     const kolejka = pytania.slice(1);
     return {
       zycieBossa,
       maxZycieBossa: zycieBossa,
       serca: (opcje && opcje.serca) || 3,
       combo: 0,
+      pula,
       kolejka,
       aktualne: pytania[0] || null,
       skonczona: false,
@@ -26,7 +28,7 @@
 
     const oczekiwana = stan.aktualne.odpowiedz;
     const poprawna = normalizuj(odpowiedzGracza) === normalizuj(oczekiwana);
-    const nowy = Object.assign({}, stan, { kolejka: stan.kolejka.slice() });
+    const nowy = Object.assign({}, stan, { kolejka: stan.kolejka.slice(), pula: stan.pula.slice() });
 
     if (poprawna) {
       nowy.combo = stan.combo + 1;
@@ -49,11 +51,10 @@
       nowy.wynik = 'przegrana';
       nowy.aktualne = null;
     } else {
-      nowy.aktualne = nowy.kolejka.shift() || null;
-      if (!nowy.aktualne) {
-        nowy.skonczona = true;
-        nowy.wynik = 'wygrana';
+      if (nowy.kolejka.length === 0) {
+        nowy.kolejka = nowy.pula.slice();
       }
+      nowy.aktualne = nowy.kolejka.shift() || null;
     }
     return nowy;
   }

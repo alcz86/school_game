@@ -74,6 +74,16 @@ test('utrata trzech serc kończy walkę przegraną', () => {
   assert.strictEqual(s.wynik, 'przegrana');
 });
 
+test('wyczerpanie puli pytan nie konczy walki, gdy boss zyje', () => {
+  let s = walka.nowaWalka(P, { zycieBossa: 30 });
+  for (let i = 0; i < 8; i++) {
+    assert.strictEqual(s.skonczona, false, 'walka nie moze sie skonczyc po ' + i + ' odpowiedziach');
+    assert.ok(s.aktualne, 'zawsze musi byc kolejne pytanie');
+    s = walka.odpowiedz(s, s.aktualne.odpowiedz);
+  }
+  assert.strictEqual(s.wynik, null);
+});
+
 test('odpowiedz nie mutuje przekazanego stanu', () => {
   const s0 = walka.nowaWalka(P, { zycieBossa: 10 });
   walka.odpowiedz(s0, '4');
