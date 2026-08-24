@@ -192,14 +192,36 @@
     return Array.from(new Set(zestaw.slowa.map((w) => w.unit))).sort((a, b) => a - b);
   }
 
+  // Numer rozdziału podany z zewnątrz — albo liczba, albo null gdy to nie jest numer.
+  //
+  // KOERCJA JEST TU POTRZEBNA, NIE UPRASZCZAJ JEJ. Ekran wyboru rozdziału czyta
+  // wartość z DOM, a `<select>.value` i `dataset.*` są w HTML ZAWSZE stringami.
+  // Bez `Number()` zakres `{ do: '3' }` przeleciałby przez `Number.isInteger`
+  // jako "brak zakresu" i gra po cichu dałaby dziecku cały materiał zamiast
+  // rozdziałów 0-3 — bez błędu, bez sygnału, że wybór został zignorowany.
+  //
+  // Uwaga na pułapkę: `Number(null)`, `Number('')` i `Number(false)` dają 0,
+  // a 0 to u nas PRAWIDŁOWY rozdział (sekcja "Hello"). Dlatego typ jest
+  // sprawdzany PRZED koercją — inaczej `{ tylko: null }` udawałoby `{ tylko: 0 }`.
+  function numerRozdzialu(wartosc) {
+    if (typeof wartosc === 'number') return Number.isInteger(wartosc) ? wartosc : null;
+    if (typeof wartosc === 'string' && wartosc.trim() !== '') {
+      const n = Number(wartosc);
+      return Number.isInteger(n) ? n : null;
+    }
+    return null;
+  }
+
   // `zakres`: { tylko: N } — sam rozdział N; { do: N } — kumulacyjnie wszystko do N
-  // włącznie (a więc także unit 0); null / brak — cały zestaw.
+  // włącznie (a więc także unit 0); null / brak / wartość nieliczbowa — cały zestaw.
   // Świadomie BEZ dolnego odcięcia na 1 — materiał przekrojowy (unit 0) ma wchodzić
   // w każdy zakres kumulacyjny.
   function wZakresie(slowa, zakres) {
     if (!zakres) return slowa.slice();
-    if (Number.isInteger(zakres.tylko)) return slowa.filter((w) => w.unit === zakres.tylko);
-    if (Number.isInteger(zakres.do)) return slowa.filter((w) => w.unit <= zakres.do);
+    const tylko = numerRozdzialu(zakres.tylko);
+    if (tylko !== null) return slowa.filter((w) => w.unit === tylko);
+    const doN = numerRozdzialu(zakres.do);
+    if (doN !== null) return slowa.filter((w) => w.unit <= doN);
     return slowa.slice();
   }
 
