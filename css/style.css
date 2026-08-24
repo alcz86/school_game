@@ -1,0 +1,40 @@
+:root {
+  --tlo: #1b1033;
+  --karta: #2c1b52;
+  --akcent: #ffd23f;
+  --tekst: #f6f2ff;
+  --dobrze: #43c59e;
+  --zle: #ef476f;
+}
+* { box-sizing: border-box; }
+body {
+  margin: 0;
+  min-height: 100vh;
+  background: var(--tlo);
+  color: var(--tekst);
+  font-family: system-ui, -apple-system, "Segoe UI", sans-serif;
+  display: flex;
+  justify-content: center;
+}
+#gra { width: 100%; max-width: 640px; padding: 1.5rem 1rem 3rem; }
+h1 { font-size: clamp(1.75rem, 7vw, 2.5rem); text-align: center; margin: .5rem 0; }
+.podtytul { text-align: center; opacity: .75; margin-top: 0; }
+.kafle { display: grid; gap: 1rem; margin-top: 2rem; }
+.kafel {
+  display: flex; align-items: center; gap: .9rem;
+  min-height: 84px; padding: 1rem 1.25rem;
+  font-size: 1.25rem; font-weight: 600;
+  color: var(--tekst); background: var(--karta);
+  border: 2px solid transparent; border-radius: 18px; cursor: pointer;
+}
+.kafel:hover, .kafel:focus-visible { border-color: var(--akcent); outline: none; }
+.ikona { font-size: 2rem; }
+.link-rodzic {
+  position: fixed; right: .75rem; bottom: .75rem;
+  width: 44px; height: 44px; font-size: 1.1rem;
+  background: transparent; color: var(--tekst);
+  border: 1px solid rgba(255,255,255,.25); border-radius: 50%;
+  opacity: .4; cursor: pointer;
+}
+.link-rodzic:hover { opacity: 1; }
+@media (min-width: 480px) { .kafle { grid-template-columns: 1fr; } }
