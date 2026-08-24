@@ -60,17 +60,27 @@ test('każdy zestaw miesza oba warianty', () => {
 
 test('treść ma dokładnie jeden podkreślnik, także dla dwuznaków', () => {
   for (const z of o.ZESTAWY) {
-    for (const w of z.wyrazy) {
-      const pytania = o.generuj(z.id, 1);
-      assert.ok(pytania.length === 1);
-      const t = z.wyrazy
-        .map((x) => x.wyraz.slice(0, x.luka) + '_' + x.wyraz.slice(x.luka + x.poprawny.length));
-      for (const tresc of t) {
-        assert.strictEqual(tresc.split('_').length - 1, 1, `zła liczba luk w "${tresc}"`);
-      }
-      break;
+    // generujemy tyle pytań, ile jest wyrazów — każdy wyraz trafia do treści
+    const pytania = o.generuj(z.id, z.wyrazy.length);
+    assert.strictEqual(pytania.length, z.wyrazy.length);
+    for (const p of pytania) {
+      const luk = p.tresc.split('_').length - 1;
+      assert.strictEqual(luk, 1, `zła liczba luk (${luk}) w "${p.tresc}"`);
+      assert.strictEqual(
+        p.tresc.replace('_', p.odpowiedz),
+        p.wyjasnienie.split(' — ')[0],
+        `wstawienie odpowiedzi nie odtwarza wyrazu: "${p.tresc}"`
+      );
     }
   }
+});
+
+test('warianty w pytaniu to kopia, nie referencja do danych źródłowych', () => {
+  const zestaw = o.ZESTAWY.find((z) => z.id === 'rz-z');
+  const przed = zestaw.warianty.slice();
+  const p = o.generuj('rz-z', 1)[0];
+  p.warianty.push('SKAZA');
+  assert.deepStrictEqual(zestaw.warianty, przed, 'mutacja pytania skaziła ZESTAWY');
 });
 
 test('generuj dla nieznanego zestawu zwraca pustą tablicę', () => {
