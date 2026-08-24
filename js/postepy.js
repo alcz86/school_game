@@ -46,7 +46,13 @@
       zapisz(stan);
     }
 
-    function dzisiaj() { return new Date().toISOString().slice(0, 10); }
+    function dzisiaj() {
+      const d = new Date();
+      const rok = d.getFullYear();
+      const miesiac = String(d.getMonth() + 1).padStart(2, '0');
+      const dzien = String(d.getDate()).padStart(2, '0');
+      return rok + '-' + miesiac + '-' + dzien;
+    }
 
     function oznaczDzien(stan) {
       const d = dzisiaj();

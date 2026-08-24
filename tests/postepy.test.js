@@ -71,6 +71,17 @@ test('reset czyści wszystko', () => {
   assert.deepStrictEqual(p.statystyki().najczestszeBledy, []);
 });
 
+test('data jest lokalna, nie UTC', () => {
+  const p = postepy.utworz(magazynPamieciowy());
+  p.zapiszOdpowiedz('matematyka', 'trudne', '7x8', true);
+  const teraz = new Date();
+  const oczekiwana =
+    teraz.getFullYear() + '-' +
+    String(teraz.getMonth() + 1).padStart(2, '0') + '-' +
+    String(teraz.getDate()).padStart(2, '0');
+  assert.strictEqual(p.statystyki().ostatnioGrane, oczekiwana);
+});
+
 test('uszkodzone dane w magazynie nie wywracają gry', () => {
   const m = magazynPamieciowy();
   m.setItem('gra-szkolna-postepy', '{to nie jest json');
