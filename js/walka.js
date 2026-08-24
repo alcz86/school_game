@@ -38,7 +38,19 @@
     } else {
       nowy.combo = 0;
       nowy.serca = stan.serca - 1;
-      nowy.kolejka.push(stan.aktualne);
+      // Pomylone pytanie wraca na POZYCJĘ 2 kolejki, nie na jej koniec.
+      //
+      // Na końcu wracałoby dopiero jako odpowiedź numer (pozycja + rozmiar puli - 1),
+      // a boss przy 10 życia i mnożnikach 1/1/2/2/3/3 ginie już po 6-8 odpowiedziach.
+      // Dziecko, które pomyli jedno pytanie i resztę odpowie dobrze, NIGDY by go nie
+      // zobaczyło — czyli dokładnie w scenariuszu, w którym ma się najwięcej nauczyć,
+      // powtórka nie działała. Pozycja 2 daje powrót po dwóch kolejnych pytaniach
+      // zawsze, niezależnie od rozmiaru puli i życia bossa.
+      //
+      // Odstęp dwóch pytań jest celowy: powrót natychmiastowy byłby przepisaniem
+      // odpowiedzi z ekranu, a nie przypomnieniem sobie jej.
+      // Gdy kolejka jest krótsza niż 2, splice dokłada na koniec — to prawidłowe.
+      nowy.kolejka.splice(2, 0, stan.aktualne);
       nowy.ostatnia = { poprawna: false, oczekiwana, mnoznik: 0, pytanie: stan.aktualne };
     }
 

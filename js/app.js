@@ -1,15 +1,14 @@
 (function () {
   const EKRANY = ['menu', 'wybor-poziomu', 'wybor-rozdzialu', 'walka', 'wynik', 'rodzic'];
 
-  // Ile pytań trafia do puli rundy.
+  // Ile pytań trafia do puli rundy. Boss ma 10 życia, więc pula nigdy się nie
+  // wyczerpuje "naturalnie" — walka.js i tak cykluje kolejkę.
   //
-  // Rozmiar puli decyduje o tym, czy powtórka błędu — najważniejszy element
-  // dydaktyczny wg spec §2 — jest w ogóle WIDOCZNA. walka.js dokłada pomylone
-  // pytanie na KONIEC kolejki, więc wraca ono dopiero po (pula - 1) kolejnych
-  // pytaniach. Przy puli 12 boss (10 życia, przy combo do zbicia wystarczy
-  // 6 trafień) ginie, zanim błąd zdąży wrócić — mechanika istniałaby tylko
-  // w kodzie. Przy 8 powtórka wypada po ~7 pytaniach, czyli wewnątrz rundy.
-  const PYTAN_NA_RUNDE = 8;
+  // Rozmiar puli NIE steruje powtórką błędu: pomylone pytanie wraca na pozycję 2
+  // kolejki (patrz walka.js), więc odstęp jest stały niezależnie od tej liczby.
+  const PYTAN_NA_RUNDE = 12;
+
+  const BRAK_MATERIALU = 'Ten rozdział nie ma jeszcze słówek';
 
   // Most między środowiskami: w przeglądarce moduły wiszą pod window.GRA.*
   // (bo pliki ładują się jako zwykłe skrypty, bez modułów), w Node — przez require
@@ -29,6 +28,10 @@
   function pokazEkran(idEkranu) {
     if (!EKRANY.includes(idEkranu)) return false;
     if (typeof document === 'undefined') return true;
+    // Każde przejście między ekranami unieważnia oczekującą informację zwrotną.
+    // Bez tego „← Wróć" w trakcie animacji wyrzucał dziecko na ekran wyniku
+    // 1,2 s później, dwa ekrany od miejsca, w którym faktycznie było.
+    anulujFeedback();
     document.querySelectorAll('.ekran').forEach((el) => {
       el.hidden = el.id !== 'ekran-' + idEkranu;
     });
@@ -76,6 +79,15 @@
   }
 
   // ---------------------------------------------------------------- pomocnicze
+
+  function przetasuj(tab) {
+    const t = tab.slice();
+    for (let i = t.length - 1; i > 0; i--) {
+      const j = Math.floor(Math.random() * (i + 1));
+      [t[i], t[j]] = [t[j], t[i]];
+    }
+    return t;
+  }
 
   function esc(v) {
     return String(v == null ? '' : v)
@@ -143,17 +155,30 @@
     timerFeedback = null;
   }
 
+  // Anuluje oczekującą informację zwrotną i zdejmuje blokadę wejścia.
+  // Wołane z pokazEkran (każda zmiana ekranu) — to jedno wąskie gardło, przez
+  // które przechodzi cała nawigacja, więc żadna nowa ścieżka go nie ominie.
+  function anulujFeedback() {
+    if (timerFeedback) clearTimeout(timerFeedback);
+    odblokuj();
+  }
+
+  function ekranWalkiWidoczny() {
+    if (typeof document === 'undefined') return false;
+    const el = document.getElementById('ekran-walka');
+    return !!el && !el.hidden;
+  }
+
   function rozpocznijWalke(tryb, idPoziomu, zakres) {
     const pytania = pytaniaDla(tryb, idPoziomu, PYTAN_NA_RUNDE, zakres);
     if (!pytania.length) {
       // NIGDY nowaWalka([]) — dałoby stan bez pytań, z którego nie ma wyjścia.
-      const komunikat = 'Ten rozdział nie ma jeszcze słówek';
-      if (tryb === 'angielski') renderujWyborRozdzialu(idPoziomu, komunikat);
+      if (typeof document === 'undefined') return false;
+      if (tryb === 'angielski') renderujWyborRozdzialu(idPoziomu, BRAK_MATERIALU);
       else renderujWyborPoziomu(tryb);
       return false;
     }
-    if (timerFeedback) { clearTimeout(timerFeedback); }
-    odblokuj();
+    anulujFeedback();
     kontekst = { tryb, idPoziomu, zakres: zakres || null };
     stanWalki = walkaMod.nowaWalka(pytania);
     wpisMat = '';
@@ -177,7 +202,15 @@
         '<button class="klawisz klawisz-ok" data-akcja="ok">OK</button></div>';
     }
     if (Array.isArray(p.warianty) && p.warianty.length) {
-      return '<div class="warianty">' + p.warianty.map((w) =>
+      // Kolejność przycisków tasujemy TUTAJ, w warstwie widoku.
+      //
+      // W ortografii `warianty` przychodzą z danych zawsze w tej samej kolejności
+      // (['ó','u']), a poprawną odpowiedzią jest wariant pierwszy w ~2/3 wyrazów.
+      // Bez tasowania dziewięciolatek po jednej rundzie odkrywa, że wystarczy klikać
+      // w lewo — i wygrywa bez czytania wyrazu. Tasowanie zostaje w UI, bo
+      // `warianty` w module ortografii mają pozostać deterministyczne (sprawdzają
+      // to istniejące testy).
+      return '<div class="warianty">' + przetasuj(p.warianty).map((w) =>
         '<button class="wariant" data-odp="' + esc(w) + '">' + esc(w) + '</button>'
       ).join('') + '</div>';
     }
@@ -188,6 +221,9 @@
   }
 
   function renderujWalke(feedbackHtml) {
+    // Bez DOM (testy w Node) budujemy sam stan i nie rysujemy — dzięki temu
+    // logika startu rundy jest testowalna headless, tak jak pokazEkran.
+    if (typeof document === 'undefined') return;
     const sekcja = document.getElementById('ekran-walka');
     const s = stanWalki;
     const procent = Math.round((s.zycieBossa / s.maxZycieBossa) * 100);
@@ -260,6 +296,11 @@
     renderujWalke(feedback);
 
     timerFeedback = setTimeout(() => {
+      // Drugie zabezpieczenie, niezależne od anulowania w pokazEkran: jeśli dziecko
+      // zdążyło opuścić ekran walki, callback nie ma prawa nic narysować ani
+      // przełączyć ekranu. Dwa zabezpieczenia, bo to klasa błędu, która wraca
+      // przy każdej nowej ścieżce nawigacji.
+      if (!ekranWalkiWidoczny()) { odblokuj(); return; }
       // Blokada zdejmowana ZAWSZE, nawet gdy render rzuci — inaczej zacięłaby się
       // na stałe i dziecko zostałoby z martwym ekranem.
       try {
@@ -278,6 +319,7 @@
   // -------------------------------------------------------------- ekran wyniku
 
   function renderujWynik() {
+    if (typeof document === 'undefined') return;
     const sekcja = document.getElementById('ekran-wynik');
     const s = stanWalki;
     const wygrana = s.wynik === 'wygrana';
@@ -405,7 +447,10 @@
     }
   }
 
-  const api = { EKRANY, pokazEkran, poziomyDla, pytaniaDla, postepy, rozpocznijWalke };
+  const api = {
+    EKRANY, PYTAN_NA_RUNDE, BRAK_MATERIALU,
+    pokazEkran, poziomyDla, pytaniaDla, postepy, rozpocznijWalke,
+  };
   if (typeof window !== 'undefined') {
     window.GRA = window.GRA || {};
     window.GRA.app = api;

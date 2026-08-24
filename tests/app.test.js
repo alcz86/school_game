@@ -48,6 +48,32 @@ test('pytaniaDla dla nieistniejacego poziomu zwraca pusta tablice, nie wybucha',
   assert.deepStrictEqual(app.pytaniaDla('nie-ma-trybu', 'cokolwiek', 10), []);
 });
 
+test('PYTAN_NA_RUNDE wystarcza, by boss nie zbil sie z jednej puli bez powtorek', () => {
+  // Boss ma 10 zycia; przy mnoznikach 1/1/2/2/3/3 do zbicia trzeba co najmniej
+  // 6 poprawnych odpowiedzi. Pula musi byc od tego wieksza, inaczej runda
+  // zaczynalaby cyklowac te same pytania juz przy bezblednej grze.
+  assert.ok(app.PYTAN_NA_RUNDE >= 8, 'pula za mala: ' + app.PYTAN_NA_RUNDE);
+});
+
+test('rozpocznijWalke odmawia startu, gdy nie ma materialu', () => {
+  // Straznik przed nowaWalka([]) — stan bez pytan zamraza gre, bo `aktualne`
+  // jest null, a walka nigdy sie nie konczy.
+  assert.strictEqual(app.rozpocznijWalke('angielski', 'klasa2-powtorka', { tylko: 99 }), false);
+  assert.strictEqual(app.rozpocznijWalke('angielski', 'nie-ma-zestawu'), false);
+  assert.strictEqual(app.rozpocznijWalke('nie-ma-trybu', 'cokolwiek'), false);
+  assert.strictEqual(app.rozpocznijWalke('matematyka', 'nie-ma-poziomu'), false);
+});
+
+test('rozpocznijWalke startuje dla poprawnego trybu i poziomu', () => {
+  assert.strictEqual(app.rozpocznijWalke('matematyka', 'trudne'), true);
+  assert.strictEqual(app.rozpocznijWalke('ortografia', 'o-u'), true);
+  assert.strictEqual(app.rozpocznijWalke('angielski', 'klasa2-powtorka', { tylko: 3 }), true);
+});
+
+test('komunikat o braku materialu jest po polsku i niepusty', () => {
+  assert.ok(app.BRAK_MATERIALU && app.BRAK_MATERIALU.length > 10);
+});
+
 test('pytaniaDla dla nieznanego poziomu zwraca [] we WSZYSTKICH trybach', () => {
   // Krytyczny przypadek: matematyka.generuj cicho fallbackuje na "trudne" dla
   // nieznanego idPoziomu — guard MUSI siedzieć w pytaniaDla, przed delegacją,

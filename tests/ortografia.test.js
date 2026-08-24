@@ -83,6 +83,49 @@ test('warianty w pytaniu to kopia, nie referencja do danych źródłowych', () =
   assert.deepStrictEqual(zestaw.warianty, przed, 'mutacja pytania skaziła ZESTAWY');
 });
 
+test('losowanie obejmuje CALY zestaw, nie tylko poczatek listy', () => {
+  // Regresja: `pula.slice(0, ile)` przed tasowaniem powodowalo, ze gra pokazywala
+  // stale pierwsze `ile` wyrazow. A dane sa pogrupowane wariantami, wiec przez cala
+  // runde poprawna odpowiedzia bylo zawsze warianty[0].
+  for (const z of o.ZESTAWY) {
+    const widziane = new Set();
+    for (let i = 0; i < 200; i++) {
+      for (const p of o.generuj(z.id, 8, {})) widziane.add(p.id);
+    }
+    assert.strictEqual(widziane.size, z.wyrazy.length,
+      `${z.id}: wylosowano tylko ${widziane.size} z ${z.wyrazy.length} wyrazow`);
+  }
+});
+
+test('obie odpowiedzi pojawiaja sie w rundzie — zaden wariant nie dominuje', () => {
+  for (const z of o.ZESTAWY) {
+    const licznik = {};
+    for (const w of z.warianty) licznik[w] = 0;
+    for (let i = 0; i < 200; i++) {
+      for (const p of o.generuj(z.id, 8, {})) licznik[p.odpowiedz] += 1;
+    }
+    const suma = z.warianty.reduce((s, w) => s + licznik[w], 0);
+    for (const w of z.warianty) {
+      const udzial = licznik[w] / suma;
+      assert.ok(udzial > 0.2,
+        `${z.id}: wariant "${w}" to tylko ${Math.round(udzial * 100)}% poprawnych odpowiedzi`);
+    }
+  }
+});
+
+test('wyrazy wczesniej mylone wracaja czesciej', () => {
+  const z = o.ZESTAWY.find((x) => x.id === 'o-u');
+  const cel = z.wyrazy[z.wyrazy.length - 1];          // z KOŃCA listy, bez wag nieuprzywilejowany
+  const wagi = {}; wagi['o-u:' + cel.wyraz] = 9;
+  let zWagami = 0; let bezWag = 0;
+  for (let i = 0; i < 200; i++) {
+    if (o.generuj('o-u', 5, wagi).some((p) => p.id === 'o-u:' + cel.wyraz)) zWagami += 1;
+    if (o.generuj('o-u', 5, {}).some((p) => p.id === 'o-u:' + cel.wyraz)) bezWag += 1;
+  }
+  assert.strictEqual(zWagami, 200, 'wyraz z waga musi trafiac do kazdej rundy');
+  assert.ok(bezWag < 150, 'bez wagi wyraz nie moze byc w kazdej rundzie (' + bezWag + '/200)');
+});
+
 test('generuj dla nieznanego zestawu zwraca pustą tablicę', () => {
   assert.deepStrictEqual(o.generuj('nie-ma-takiego', 5), []);
 });

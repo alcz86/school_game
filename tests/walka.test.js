@@ -47,6 +47,47 @@ test('błędne pytanie wraca do kolejki tej samej rundy', () => {
   assert.ok(s.kolejka.some((p) => p.id === 'a'), 'pytanie a musi wrócić do kolejki');
 });
 
+test('pomylone pytanie wraca po dokladnie dwoch kolejnych pytaniach', () => {
+  const pula = ['a', 'b', 'c', 'd', 'e', 'f'].map((id) => ({
+    id, tresc: id, odpowiedz: 'ok-' + id, wyjasnienie: '',
+  }));
+  let s = walka.nowaWalka(pula, { zycieBossa: 50 });
+  assert.strictEqual(s.aktualne.id, 'a');
+  s = walka.odpowiedz(s, 'zle');            // 'a' pomylone
+  assert.strictEqual(s.aktualne.id, 'b');   // nastepne
+  s = walka.odpowiedz(s, s.aktualne.odpowiedz);
+  assert.strictEqual(s.aktualne.id, 'c');   // jeszcze jedno
+  s = walka.odpowiedz(s, s.aktualne.odpowiedz);
+  assert.strictEqual(s.aktualne.id, 'a', 'pomylone pytanie musi wrocic jako trzecie z kolei');
+});
+
+test('pomylone pytanie wraca, gdy reszta rundy to same poprawne odpowiedzi', () => {
+  // NAJWAZNIEJSZY przypadek dydaktyczny i najlatwiejszy do przeoczenia: dziecko
+  // myli JEDNO pytanie, potem odpowiada bezblednie. Przy dokladaniu pomylonego
+  // pytania na koniec kolejki boss ginial, zanim ono wrocilo — powtorka istniala
+  // w kodzie, ale nigdy nie pojawiala sie na ekranie.
+  const pula = [];
+  for (let i = 0; i < 12; i++) pula.push({ id: 'p' + i, tresc: 'p' + i, odpowiedz: 'ok' + i, wyjasnienie: '' });
+
+  let s = walka.nowaWalka(pula, { zycieBossa: 10 });
+  const pomylone = s.aktualne.id;
+  s = walka.odpowiedz(s, 'zle');
+
+  let wrocilo = false;
+  while (!s.skonczona) {
+    if (s.aktualne.id === pomylone) wrocilo = true;
+    s = walka.odpowiedz(s, s.aktualne.odpowiedz);
+  }
+  assert.strictEqual(s.wynik, 'wygrana');
+  assert.ok(wrocilo, 'pomylone pytanie musi wrocic przed koncem rundy');
+});
+
+test('pomylone pytanie wraca takze przy bardzo krotkiej kolejce', () => {
+  // kolejka krotsza niz 2 — splice dokłada na koniec, co jest prawidlowe
+  const s = walka.odpowiedz(walka.nowaWalka(P, { zycieBossa: 10 }), '5');
+  assert.ok(s.kolejka.some((p) => p.id === 'a'));
+});
+
 test('combo ×2 zadaje podwójne obrażenia', () => {
   let s = walka.nowaWalka(P, { zycieBossa: 20 });
   s = walka.odpowiedz(s, s.aktualne.odpowiedz);

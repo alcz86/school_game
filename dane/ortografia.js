@@ -99,21 +99,41 @@
     };
   }
 
+  function przetasuj(tab) {
+    const t = tab.slice();
+    for (let i = t.length - 1; i > 0; i--) {
+      const j = Math.floor(Math.random() * (i + 1));
+      [t[i], t[j]] = [t[j], t[i]];
+    }
+    return t;
+  }
+
   function generuj(idZestawu, ile, wagi) {
     const zestaw = ZESTAWY.find((z) => z.id === idZestawu);
     if (!zestaw) return [];
-    const pula = zestaw.wyrazy.slice();
-    // wyrazy wcześniej mylone na początek puli
-    if (wagi) pula.sort((a, b) => (wagi[zestaw.id + ':' + b.wyraz] || 0) - (wagi[zestaw.id + ':' + a.wyraz] || 0));
-    const wybrane = [];
-    const reszta = wagi ? pula.slice(0, Math.min(ile, pula.length)) : pula;
-    const mieszane = reszta.slice();
-    for (let i = mieszane.length - 1; i > 0; i--) {
-      const j = Math.floor(Math.random() * (i + 1));
-      [mieszane[i], mieszane[j]] = [mieszane[j], mieszane[i]];
+
+    // Losowanie MUSI obejmować cały zestaw.
+    //
+    // Poprzednia wersja robiła `pula.slice(0, ile)` i dopiero potem tasowała
+    // wycinek. Ponieważ `wagi` z postępów to zwykle pusty obiekt (czyli wartość
+    // prawdziwa, ale sortująca wszystko na zero — sort stabilny, kolejność danych
+    // bez zmian), gra pokazywała stale PIERWSZE `ile` wyrazów listy. A dane są
+    // pogrupowane: najpierw wszystkie "ó", potem wszystkie "u". Efekt: przez całą
+    // rundę poprawną odpowiedzią było zawsze "ó" — tryb uczył klikania w jedną
+    // stronę zamiast ortografii, dokładnie wbrew spec §3.2.
+    //
+    // Teraz: tasujemy CAŁĄ pulę, dopiero potem przesuwamy na przód wyrazy wcześniej
+    // mylone (sort jest stabilny, więc reszta zostaje w losowej kolejności), i na
+    // końcu tasujemy sam wybór, żeby mylone nie lądowały zawsze na początku rundy.
+    const pula = przetasuj(zestaw.wyrazy);
+    if (wagi) {
+      pula.sort((a, b) => (wagi[zestaw.id + ':' + b.wyraz] || 0) - (wagi[zestaw.id + ':' + a.wyraz] || 0));
     }
+    const wybor = przetasuj(pula.slice(0, Math.min(ile, pula.length)));
+
+    const wybrane = [];
     for (let i = 0; i < ile; i++) {
-      wybrane.push(naPytanie(zestaw, mieszane[i % mieszane.length] || losowy(pula)));
+      wybrane.push(naPytanie(zestaw, wybor[i % wybor.length] || losowy(pula)));
     }
     return wybrane;
   }

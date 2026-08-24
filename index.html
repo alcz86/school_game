@@ -16,7 +16,10 @@
         <button class="kafel" data-tryb="ortografia"><span class="ikona">✍️</span>Ortografia</button>
         <button class="kafel" data-tryb="angielski"><span class="ikona">🇬🇧</span>Angielski</button>
       </div>
-      <button id="btn-rodzic" class="link-rodzic" title="Postępy">📊</button>
+      <!-- Ekran postępów dla rodzica powstaje w Tasku 9. Do tego czasu przycisk
+           jest ukryty — widoczny przycisk, który nic nie robi, jest gorszy niż
+           jego brak. Usunięcie atrybutu `hidden` wystarczy, by go przywrócić. -->
+      <button id="btn-rodzic" class="link-rodzic" title="Postępy" hidden>📊</button>
     </section>
     <section class="ekran" id="ekran-wybor-poziomu" hidden></section>
     <section class="ekran" id="ekran-wybor-rozdzialu" hidden></section>
