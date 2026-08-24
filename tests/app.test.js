@@ -3,7 +3,7 @@ const assert = require('node:assert');
 const app = require('../js/app.js');
 
 test('EKRANY zawiera wszystkie ekrany gry', () => {
-  assert.deepStrictEqual(app.EKRANY, ['menu', 'wybor-poziomu', 'walka', 'wynik', 'rodzic']);
+  assert.deepStrictEqual(app.EKRANY, ['menu', 'wybor-poziomu', 'wybor-rozdzialu', 'walka', 'wynik', 'rodzic']);
 });
 
 test('pokazEkran zwraca false dla nieznanego ekranu', () => {

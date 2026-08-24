@@ -50,3 +50,101 @@ h1 { font-size: clamp(1.75rem, 7vw, 2.5rem); text-align: center; margin: .5rem 0
 .wstecz:hover, .wstecz:focus-visible { border-color: var(--akcent); outline: none; }
 #ekran-wybor-poziomu h2 { margin: .25rem 0 1rem; }
 .kafel-poziom small { opacity: .75; font-weight: 400; }
+
+/* ---------------------------------------------- ekran wyboru rozdziału */
+#ekran-wybor-rozdzialu h2 { margin: .25rem 0 1rem; }
+.komunikat {
+  padding: .75rem 1rem; margin: 0 0 1rem;
+  background: rgba(255,122,122,.15);
+  border: 1px solid var(--zle); border-radius: 12px;
+}
+.rozdzialy { display: grid; gap: .75rem; }
+.rozdzial {
+  background: var(--karta); border-radius: 16px; padding: .75rem;
+  display: grid; gap: .5rem;
+}
+.rozdzial h3 { margin: 0 0 .1rem; font-size: 1.05rem; }
+.btn-zakres {
+  min-height: 48px; padding: .6rem 1rem;
+  font-size: 1rem; font-weight: 600; text-align: left;
+  color: var(--tlo); background: var(--akcent);
+  border: 2px solid var(--akcent); border-radius: 12px; cursor: pointer;
+}
+.btn-zakres-do { color: var(--tekst); background: transparent; }
+.btn-zakres:hover, .btn-zakres:focus-visible { outline: none; filter: brightness(1.1); }
+
+/* ------------------------------------------------------- ekran walki */
+.boss { text-align: center; margin-bottom: .5rem; }
+.potwor { font-size: clamp(3rem, 18vw, 5rem); line-height: 1.1; }
+.pasek {
+  height: 18px; border-radius: 10px; overflow: hidden;
+  background: rgba(255,255,255,.15); border: 1px solid rgba(255,255,255,.2);
+}
+.pasek-wypelnienie {
+  height: 100%; background: linear-gradient(90deg, var(--zle), var(--akcent));
+  transition: width .3s ease;
+}
+.pasek-opis { font-size: .85rem; opacity: .7; margin-top: .25rem; }
+.serca { text-align: center; font-size: 1.9rem; letter-spacing: .3rem; color: var(--zle); }
+.serce-puste { opacity: .22; }
+.combo { min-height: 2rem; text-align: center; font-size: 1.15rem; font-weight: 700; color: var(--akcent); }
+.combo-pusto { visibility: hidden; }
+.pytanie {
+  text-align: center; font-size: clamp(1.8rem, 9vw, 2.6rem);
+  font-weight: 700; margin: .75rem 0 1.25rem; overflow-wrap: anywhere;
+}
+.wpis {
+  min-height: 60px; margin: 0 auto 1rem; max-width: 260px;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 2rem; font-weight: 700;
+  background: var(--karta); border-radius: 14px;
+}
+.klawiatura { display: grid; grid-template-columns: repeat(3, 1fr); gap: .5rem; }
+.klawisz {
+  min-height: 56px; min-width: 44px;
+  font-size: 1.4rem; font-weight: 700;
+  color: var(--tekst); background: var(--karta);
+  border: 2px solid transparent; border-radius: 14px; cursor: pointer;
+}
+.klawisz:hover, .klawisz:focus-visible { border-color: var(--akcent); outline: none; }
+.klawisz-ok { color: var(--tlo); background: var(--akcent); font-size: 1.2rem; }
+.klawisz-usun { font-size: 1rem; }
+.warianty { display: grid; gap: .75rem; }
+.wariant {
+  min-height: 64px; padding: .75rem 1rem;
+  font-size: 1.4rem; font-weight: 700;
+  color: var(--tekst); background: var(--karta);
+  border: 2px solid transparent; border-radius: 16px; cursor: pointer;
+  overflow-wrap: anywhere;
+}
+.wariant:hover, .wariant:focus-visible { border-color: var(--akcent); outline: none; }
+.wpisywanie { display: flex; gap: .5rem; flex-wrap: wrap; }
+#pole-odp {
+  flex: 1 1 160px; min-height: 56px; padding: .5rem .9rem;
+  font-size: 1.3rem; color: var(--tekst); background: var(--karta);
+  border: 2px solid rgba(255,255,255,.2); border-radius: 14px;
+}
+#pole-odp:focus { border-color: var(--akcent); outline: none; }
+.wpisywanie .klawisz-ok { flex: 0 0 96px; }
+
+.feedback { border-radius: 16px; padding: 1rem; text-align: center; margin-top: .5rem; }
+.feedback-tytul { margin: 0; font-size: 1.35rem; font-weight: 700; overflow-wrap: anywhere; }
+.feedback-dobrze { background: rgba(126,232,166,.16); border: 2px solid var(--dobrze); color: var(--dobrze); }
+.feedback-zle { background: rgba(255,122,122,.14); border: 2px solid var(--zle); color: var(--zle); }
+.wyjasnienie { margin: .5rem 0 0; font-size: 1rem; color: var(--tekst); opacity: .9; overflow-wrap: anywhere; }
+
+/* ------------------------------------------------------ ekran wyniku */
+.wynik-tytul { text-align: center; font-size: clamp(1.4rem, 6vw, 2rem); margin: .5rem 0; }
+.odznaka { text-align: center; font-size: 1.3rem; font-weight: 700; color: var(--akcent); }
+.statystyki-rundy { list-style: none; padding: 0; text-align: center; font-size: 1.1rem; }
+.statystyki-rundy li { margin: .35rem 0; }
+.naglowek-pomylki { margin: 1.5rem 0 .5rem; }
+.pomylki { list-style: none; padding: 0; margin: 0; display: grid; gap: .6rem; }
+.pomylki li {
+  display: grid; gap: .2rem;
+  background: var(--karta); border-radius: 14px; padding: .75rem 1rem;
+}
+.pomylka-tresc { font-size: 1.2rem; font-weight: 700; overflow-wrap: anywhere; }
+.pomylka-odp { color: var(--dobrze); font-weight: 700; overflow-wrap: anywhere; }
+.przyciski-wyniku { display: grid; gap: .75rem; margin-top: 1.5rem; }
+.kafel-akcja { justify-content: center; min-height: 60px; }
