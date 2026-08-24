@@ -1,10 +1,10 @@
 :root {
-  --tlo: #1b1033;
-  --karta: #2c1b52;
-  --akcent: #ffd23f;
-  --tekst: #f6f2ff;
-  --dobrze: #43c59e;
-  --zle: #ef476f;
+  --tlo: #0d2818;
+  --karta: #16452c;
+  --akcent: #b6e86a;
+  --tekst: #f1f8f2;
+  --dobrze: #7ee8a6;
+  --zle: #ff7a7a;
 }
 * { box-sizing: border-box; }
 body {
