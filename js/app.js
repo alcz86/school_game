@@ -115,6 +115,12 @@
 
   // ------------------------------------------------- ekran wyboru rozdziału
 
+  // „Od początku do N" ma sens tylko wtedy, gdy przed N jest jakiś rozdział.
+  // `numery` przychodzą z slowka.rozdzialy() — posortowane, bez duplikatów.
+  function zakresDoMaSens(numery, n) {
+    return numery.indexOf(n) > 0;
+  }
+
   function renderujWyborRozdzialu(idZestawu, komunikat) {
     const sekcja = document.getElementById('ekran-wybor-rozdzialu');
     const numery = slowka.rozdzialy(idZestawu);
@@ -128,8 +134,11 @@
         const tylko =
           '<button class="btn-zakres" data-rozdzial="' + n + '" data-zakres="tylko">' +
           'Tylko ' + esc(nazwaRozdzialu(n)) + '</button>';
-        // Przy rozdziale 0 („Hello") „od początku do" nie ma sensu — to ten sam zbiór.
-        const doN = n === 0 ? '' :
+        // Przy PIERWSZYM rozdziale zestawu „od początku do N" daje dokładnie to samo
+        // co „Tylko rozdział N" — dwa przyciski, jedna runda. Kiedyś wyjątek był
+        // zaszyty na `n === 0` („Hello"), ale zestaw dopisany według README zaczyna
+        // się od rozdziału 1 i duplikat wracał. Liczy się pozycja, nie numer.
+        const doN = !zakresDoMaSens(numery, n) ? '' :
           '<button class="btn-zakres btn-zakres-do" data-rozdzial="' + n + '" data-zakres="do">' +
           'Od początku do ' + n + '</button>';
         return '<div class="rozdzial"><h3>' + esc(nazwaRozdzialu(n)) + '</h3>' + tylko + doN + '</div>';
@@ -149,6 +158,13 @@
   let trafienia = 0;
   let najdluzszeCombo = 0;
   let pomylone = [];         // [{ tresc, oczekiwana, wyjasnienie }]
+  // Identyfikatory pytań, na które padła już odpowiedź w TEJ rundzie.
+  //
+  // Śledzimy to tutaj, a nie w postepy.js, bo „runda" istnieje wyłącznie w app.js —
+  // postepy.js to trwały magazyn bez pojęcia sesji ani granic rundy i gdyby miał
+  // sam odróżniać powtórkę od pierwszego podejścia, musiałby trzymać stan czasowy
+  // w localStorage (i mylić się przy odświeżeniu strony w środku walki).
+  let odpowiedzianeWRundzie = new Set();
 
   function odblokuj() {
     blokada = false;
@@ -185,6 +201,7 @@
     trafienia = 0;
     najdluzszeCombo = 0;
     pomylone = [];
+    odpowiedzianeWRundzie = new Set();
     renderujWalke();
     pokazEkran('walka');
     return true;
@@ -263,7 +280,11 @@
     const o = nowy.ostatnia;
 
     // Statystyki liczą się PER ZESTAW, nie per zakres — stąd idPoziomu, nie zakres.
-    postepy.zapiszOdpowiedz(tryb, idPoziomu, pytanie.id, o.poprawna);
+    // Do skuteczności wchodzi TYLKO pierwsze podejście do danego pytania w tej
+    // rundzie; powtórka po pomyłce nadal zlicza błąd (wagi), ale nie zawyża procentu.
+    const pierwszePodejscie = !odpowiedzianeWRundzie.has(pytanie.id);
+    odpowiedzianeWRundzie.add(pytanie.id);
+    postepy.zapiszOdpowiedz(tryb, idPoziomu, pytanie.id, o.poprawna, pierwszePodejscie);
 
     if (o.poprawna) {
       trafienia += 1;
@@ -478,6 +499,33 @@
     return '<td class="td-procent' + klasa + '">' + procent + '%</td>';
   }
 
+  // „3 błędy z 4 prób" — sama liczba pomyłek nic nie mówi: 4 z 20 to co innego
+  // niż 4 z 4. Liczymy na PIERWSZYCH podejściach (patrz postepy.zapiszOdpowiedz),
+  // więc błędy i próby są na tym samym mianowniku.
+  function formaKoncowka(n, jeden, kilka, wiele) {
+    if (n === 1) return jeden;
+    const d = n % 10, s = n % 100;
+    return (d >= 2 && d <= 4 && !(s >= 12 && s <= 14)) ? kilka : wiele;
+  }
+
+  function opisPomylek(b) {
+    const bledy = b.bledyPierwsze == null ? b.bledy : b.bledyPierwsze;
+    const proby = b.proby == null ? bledy : b.proby;
+    return bledy + ' ' + formaKoncowka(bledy, 'błąd', 'błędy', 'błędów') +
+      ' z ' + proby + ' ' + formaKoncowka(proby, 'próby', 'prób', 'prób');
+  }
+
+  function tabelaPomylek(lista) {
+    return '<table class="tabela-postepy"><thead><tr>' +
+      '<th>Pozycja</th><th>Tryb i poziom</th><th>Pomyłki</th>' +
+      '</tr></thead><tbody>' +
+      lista.map((b) =>
+        '<tr><td class="td-pozycja">' + esc(opisBledu(b.tryb, b.zestaw, b.id)) + '</td>' +
+        '<td class="td-skad">' + esc((NAZWY_TRYBOW[b.tryb] || b.tryb) + ' · ' + nazwaPoziomu(b.tryb, b.zestaw)) + '</td>' +
+        '<td class="td-bledy">' + esc(opisPomylek(b)) + '</td></tr>').join('') +
+      '</tbody></table>';
+  }
+
   function renderujRodzica() {
     if (typeof document === 'undefined') return false;
     const sekcja = document.getElementById('ekran-rodzic');
@@ -524,15 +572,19 @@
 
     const bledy = (stat.najczestszeBledy || []).filter((b) => b && b.bledy > 0);
     if (bledy.length) {
-      html += '<h3>Najczęściej mylone (' + bledy.length + ')</h3>' +
-        '<table class="tabela-postepy"><thead><tr>' +
-        '<th>Pozycja</th><th>Tryb i poziom</th><th>Pomyłki</th>' +
-        '</tr></thead><tbody>' +
-        bledy.map((b) =>
-          '<tr><td class="td-pozycja">' + esc(opisBledu(b.tryb, b.zestaw, b.id)) + '</td>' +
-          '<td class="td-skad">' + esc((NAZWY_TRYBOW[b.tryb] || b.tryb) + ' · ' + nazwaPoziomu(b.tryb, b.zestaw)) + '</td>' +
-          '<td class="td-bledy">' + b.bledy + '</td></tr>').join('') +
-        '</tbody></table>';
+      const wszystkich = stat.mylonePozycje || bledy.length;
+      // Nagłówek pokazuje OBIE liczby. Sam „(10)" kłamał: przy 58 mylonych pozycjach
+      // sugerował, że to całość, a poza listą zostawało ok. 62% błędów.
+      html += '<h3>Najczęściej mylone (' + bledy.length + ' z ' + wszystkich + ')</h3>' +
+        tabelaPomylek(bledy);
+    }
+
+    const zawsze = (stat.zawszeMylone || []);
+    if (zawsze.length) {
+      html += '<h3>Zawsze mylone (' + zawsze.length + ')</h3>' +
+        '<p class="podtytul">Pozycje, w których nie było jeszcze ani jednej dobrej odpowiedzi ' +
+        '(co najmniej dwie próby).</p>' +
+        tabelaPomylek(zawsze);
     }
 
     html += '<div class="przyciski-wyniku">' +
@@ -651,7 +703,7 @@
     EKRANY, PYTAN_NA_RUNDE, BRAK_MATERIALU, BRAK_DANYCH, PROG_SLABY,
     pokazEkran, poziomyDla, pytaniaDla, postepy, rozpocznijWalke,
     renderujRodzica, nazwaPoziomu, opisBledu, wierszeSkutecznosci, wierszeAngielski,
-    formatujDate, formatujDni,
+    formatujDate, formatujDni, zakresDoMaSens, opisPomylek,
   };
   if (typeof window !== 'undefined') {
     window.GRA = window.GRA || {};

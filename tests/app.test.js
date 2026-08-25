@@ -200,3 +200,28 @@ test('komunikat o braku danych jest po polsku i niepusty', () => {
 test('renderujRodzica bez DOM nie wybucha, tylko zwraca false', () => {
   assert.strictEqual(app.renderujRodzica(), false);
 });
+
+test('"Od poczatku do N" nie pokazuje sie przy PIERWSZYM rozdziale zestawu', () => {
+  // Regresja: wyjatek byl zaszyty na `n === 0`, wiec zestaw zaczynajacy sie od
+  // rozdzialu 1 (tak wyglada kazdy dopisany wedlug README) dawal dwa przyciski
+  // uruchamiajace identyczna runde.
+  assert.strictEqual(app.zakresDoMaSens([0, 1, 2], 0), false);
+  assert.strictEqual(app.zakresDoMaSens([0, 1, 2], 1), true);
+  assert.strictEqual(app.zakresDoMaSens([1, 2, 3], 1), false, 'rozdzial 1 jako pierwszy — bez duplikatu');
+  assert.strictEqual(app.zakresDoMaSens([1, 2, 3], 3), true);
+  assert.strictEqual(app.zakresDoMaSens([4], 4), false, 'jeden rozdzial — nie ma "od poczatku"');
+});
+
+test('kazdy realny zestaw slowek ma zakres "do" tylko poza pierwszym rozdzialem', () => {
+  for (const z of slowka.ZESTAWY) {
+    const numery = slowka.rozdzialy(z.id);
+    assert.strictEqual(app.zakresDoMaSens(numery, numery[0]), false, z.id);
+  }
+});
+
+test('lista mylonych pokazuje mianownik, nie sama liczbe bledow', () => {
+  assert.strictEqual(app.opisPomylek({ bledy: 3, bledyPierwsze: 3, proby: 4 }), '3 błędy z 4 prób');
+  assert.strictEqual(app.opisPomylek({ bledy: 1, bledyPierwsze: 1, proby: 1 }), '1 błąd z 1 próby');
+  assert.strictEqual(app.opisPomylek({ bledy: 5, bledyPierwsze: 5, proby: 12 }), '5 błędów z 12 prób');
+  assert.strictEqual(app.opisPomylek({ bledy: 2, bledyPierwsze: 2, proby: 2 }), '2 błędy z 2 prób');
+});

@@ -41,14 +41,28 @@
     // statystyki() i wagi() dzielą klucz przez split('|') bez ograniczenia liczby części.
     function klucz(tryb, zestaw, id) { return tryb + '|' + zestaw + '|' + id; }
 
-    function zapiszOdpowiedz(tryb, zestaw, idPytania, poprawna) {
+    // `pierwszePodejscie` (domyślnie true) rozdziela DWA różne pytania:
+    //   - "ile procent dziecko umie"        -> tylko pierwsze podejście w rundzie
+    //   - "co dziecko myli" (wagi powtórek) -> KAŻDA pomyłka, także w powtórce
+    //
+    // Pomylone pytanie wraca po dwóch krokach (walka.js), a dziecko widziało
+    // wtedy odpowiedź na ekranie 1,2 s wcześniej — więc trafia niemal zawsze.
+    // Wliczanie tej darmowej powtórki do skuteczności zawyżało procent na ekranie
+    // rodzica o ok. +11..+15 pp przy realnej wiedzy 30% (im słabiej dziecko umie,
+    // tym większe zawyżenie — czyli błąd był największy tam, gdzie ekran ma
+    // znaczenie). Dlatego licznik `odpowiedzi` rusza się tylko przy pierwszym
+    // podejściu, a `bledy` (karmiące wagi) — zawsze.
+    function zapiszOdpowiedz(tryb, zestaw, idPytania, poprawna, pierwszePodejscie) {
       const stan = wczytaj();
       const k = klucz(tryb, zestaw, idPytania);
-      const wpis = stan.odpowiedzi[k] || { poprawne: 0, wszystkie: 0 };
-      wpis.wszystkie += 1;
-      if (poprawna) wpis.poprawne += 1;
-      else stan.bledy[k] = (stan.bledy[k] || 0) + 1;
-      stan.odpowiedzi[k] = wpis;
+      const pierwsze = pierwszePodejscie === undefined ? true : !!pierwszePodejscie;
+      if (pierwsze) {
+        const wpis = stan.odpowiedzi[k] || { poprawne: 0, wszystkie: 0 };
+        wpis.wszystkie += 1;
+        if (poprawna) wpis.poprawne += 1;
+        stan.odpowiedzi[k] = wpis;
+      }
+      if (!poprawna) stan.bledy[k] = (stan.bledy[k] || 0) + 1;
       oznaczDzien(stan);
       zapisz(stan);
     }
@@ -96,17 +110,42 @@
         tryby[tryb][zestaw] = cel;
       }
 
-      const najczestszeBledy = Object.keys(stan.bledy)
-        .map((k) => {
-          const [tryb, zestaw, id] = k.split('|');
-          return { tryb, zestaw, id, bledy: stan.bledy[k] };
-        })
-        .sort((a, b) => b.bledy - a.bledy)
+      // Do każdej mylonej pozycji dokładamy liczbę PRÓB (pierwszych podejść) i
+      // liczbę błędów w tych próbach. Bez tego "4 pomyłki" nie da się odczytać:
+      // 4 z 20 to co innego niż 4 z 4. `bledy` zostaje bez zmian — to ta sama
+      // liczba co dotąd (wszystkie pomyłki, także w powtórkach) i to ona karmi wagi.
+      const wszystkieMylone = Object.keys(stan.bledy).filter((k) => stan.bledy[k] > 0);
+      const opisz = (k) => {
+        const [tryb, zestaw, id] = k.split('|');
+        const w = stan.odpowiedzi[k] || { poprawne: 0, wszystkie: 0 };
+        return {
+          tryb, zestaw, id,
+          bledy: stan.bledy[k] || 0,
+          proby: w.wszystkie,
+          bledyPierwsze: w.wszystkie - w.poprawne,
+        };
+      };
+
+      const najczestszeBledy = wszystkieMylone
+        .map(opisz)
+        .sort((a, b) => (b.bledyPierwsze - a.bledyPierwsze) || (b.bledy - a.bledy))
+        .slice(0, 10);
+
+      // "Zawsze mylone": pozycje, w których dziecko NIE trafiło ANI RAZU przy
+      // co najmniej dwóch próbach. Lista sortowana po liczbie pomyłek gubi je
+      // (2 błędy z 2 prób przegrywa z 4 z 20), a to dokładnie są rzeczy, których
+      // syn nie umie.
+      const zawszeMylone = Object.keys(stan.odpowiedzi)
+        .filter((k) => stan.odpowiedzi[k].wszystkie >= 2 && stan.odpowiedzi[k].poprawne === 0)
+        .map(opisz)
+        .sort((a, b) => (b.proby - a.proby) || (b.bledy - a.bledy))
         .slice(0, 10);
 
       return {
         tryby,
         najczestszeBledy,
+        mylonePozycje: wszystkieMylone.length,
+        zawszeMylone,
         dniZRzedu: policzDniZRzedu(stan.dni),
         ostatnioGrane: stan.dni[stan.dni.length - 1] || null,
       };

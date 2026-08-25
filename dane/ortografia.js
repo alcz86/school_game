@@ -33,7 +33,12 @@
       nazwa: 'rz czy ż',
       warianty: ['rz', 'ż'],
       wyrazy: [
-        { wyraz: 'morze',     luka: 2, poprawny: 'rz', zasada: 'rz wymienia się na r: morze — morski' },
+        // Uwaga: NIE wracać tu do wyrazu `morze`. Renderuje się jako `mo_e`, a zły
+        // wariant daje `może` — bardzo częste polskie słowo, które dziewięciolatek
+        // zna lepiej niż wymianę „morze — morski". Dziecko odpowiada sensownie,
+        // dostaje „Prawie!" i zasadę do wyrazu, o który nie było pytane.
+        // `dworzec` ma tę samą wymianę rz→r, a `dwożec` nie jest żadnym słowem.
+        { wyraz: 'dworzec',   luka: 3, poprawny: 'rz', zasada: 'rz wymienia się na r: dworzec — dworca' },
         { wyraz: 'marzec',    luka: 2, poprawny: 'rz', zasada: 'rz wymienia się na r: marzec — marca' },
         { wyraz: 'dobrze',    luka: 3, poprawny: 'rz', zasada: 'rz wymienia się na r: dobrze — dobry' },
         { wyraz: 'malarz',    luka: 4, poprawny: 'rz', zasada: 'rz wymienia się na r: malarz — malarski' },

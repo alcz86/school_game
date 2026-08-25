@@ -27,7 +27,7 @@
     if (stan.skonczona || !stan.aktualne) return stan;
 
     const oczekiwana = stan.aktualne.odpowiedz;
-    const poprawna = normalizuj(odpowiedzGracza) === normalizuj(oczekiwana);
+    const poprawna = rowne(odpowiedzGracza, oczekiwana);
     const nowy = Object.assign({}, stan, { kolejka: stan.kolejka.slice(), pula: stan.pula.slice() });
 
     if (poprawna) {
@@ -75,7 +75,24 @@
     return String(v == null ? '' : v).trim().toLowerCase();
   }
 
-  const api = { mnoznikCombo, nowaWalka, odpowiedz };
+  // Porównanie liczbowe TYLKO wtedy, gdy obie strony to czyste ciągi cyfr.
+  //
+  // Na klawiaturze numerycznej dziecko potrafi zacząć od zera — „07" to
+  // merytorycznie poprawne 7, a gra odbierała za to serce.
+  //
+  // Warunek jest celowo wąski: Number('') to 0, Number(' ') to 0 i Number('0x10')
+  // to 16, więc każde luźniejsze rzutowanie zaliczyłoby pustą odpowiedź przy
+  // oczekiwanym „0". Regex /^\d+$/ nie przepuszcza pustego ciągu, spacji, minusa
+  // ani kropki, a odpowiedzi tekstowe (słówka, warianty ortograficzne) w ogóle
+  // do tej gałęzi nie wchodzą.
+  function rowne(a, b) {
+    const x = normalizuj(a);
+    const y = normalizuj(b);
+    if (/^\d+$/.test(x) && /^\d+$/.test(y)) return Number(x) === Number(y);
+    return x === y;
+  }
+
+  const api = { mnoznikCombo, nowaWalka, odpowiedz, rowne };
   if (typeof window !== 'undefined') {
     window.GRA = window.GRA || {};
     window.GRA.walka = api;

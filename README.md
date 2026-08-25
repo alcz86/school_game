@@ -73,19 +73,19 @@ Edytujesz `dane/ortografia.js`. Struktura jest podobna — trzy zestawy (`o-u`, 
 `ch-h`), a w każdym lista `wyrazy`. Jeden wpis wygląda tak:
 
 ```js
-        { wyraz: 'morze', luka: 2, poprawny: 'rz', zasada: 'rz wymienia się na r: morze — morski' },
+        { wyraz: 'dworzec', luka: 3, poprawny: 'rz', zasada: 'rz wymienia się na r: dworzec — dworca' },
 ```
 
 **`luka` to indeks liczony od zera** — pozycja, na której zaczyna się ukrywana litera.
 Litera 0 to pierwsza litera wyrazu.
 
 **`rz` i `ch` mają długość 2** — gra wycina ze słowa tyle znaków, ile ma `poprawny`,
-zaczynając od `luka`. Dlatego dla `morze` przy `luka: 2` znika `rz` i dziecko widzi
-`mo_e`. Gdyby `poprawny` było `'ż'` (długość 1), przy tym samym `luka` zniknęłaby
-jedna litera i wyszłoby `mo_ze` — bez sensu.
+zaczynając od `luka`. Dlatego dla `dworzec` przy `luka: 3` znika `rz` i dziecko widzi
+`dwo_ec`. Gdyby `poprawny` było `'ż'` (długość 1), przy tym samym `luka` zniknęłaby
+jedna litera i wyszłoby `dwo_zec` — bez sensu.
 
 Jak sprawdzić, że trafiłaś: policz litery od zera do miejsca, gdzie zaczyna się
-`ó` / `rz` / `ch`. `m-o-r-z-e` → `m`=0, `o`=1, `r`=2, więc `luka: 2`.
+`ó` / `rz` / `ch`. `d-w-o-r-z-e-c` → `d`=0, `w`=1, `o`=2, `r`=3, więc `luka: 3`.
 Po dopisaniu wejdź do gry i zobacz, czy wyraz wyświetla się z jedną luką w dobrym miejscu.
 
 **`zasada` musi być prawdziwa.** To jedyna rzecz, którą dziecko czyta po odpowiedzi —
@@ -98,9 +98,17 @@ uczy zgadywania.
   gdzie żadnej wymiany nie ma. Przy takich wyrazach napisz wprost, że trzeba je
   zapamiętać: `'ó się tu nie wymienia — trzeba zapamiętać: król, królowa, królewski'`.
 
-Uważaj też, żeby dwa różne wyrazy nie dawały tego samego obrazka z luką —
-np. `morze` i `może` oba dają `mo_e` i wtedy nie da się odpowiedzieć poprawnie
-(patrz „Znane usterki" niżej).
+Dwie pułapki, o których warto wiedzieć:
+
+1. **Dwa wyrazy z tym samym obrazkiem.** `morze` i `może` oba dają `mo_e` — dziecko
+   nie ma jak zgadnąć, o który chodzi. **Tego pilnuje test**: `node --test` przechodzi
+   cały plik i wywala się z nazwą obu kolidujących wyrazów. Nie musisz tego sprawdzać
+   ręcznie — wystarczy uruchomić testy po dopisaniu.
+2. **Zły wariant, który też jest polskim słowem.** `morze` z podmienionym `rz` na `ż`
+   daje `może` — słowo, które dziewięciolatek zna lepiej niż wymianę „morze — morski",
+   więc odpowiada rozsądnie i traci serce. Tego test nie wyłapie sam (nie ma tu
+   słownika), więc po dopisaniu wyrazu wstaw w lukę **zły** wariant i sprawdź, czy
+   nie wyszło ci prawdziwe słowo. Jeśli wyszło — wybierz inny wyraz na tę zasadę.
 
 ---
 
@@ -112,7 +120,10 @@ W terminalu, w katalogu gry:
 node --test
 ```
 
-Bez żadnych argumentów. Powinno wypisać `# pass 94` i `# fail 0`.
+Bez żadnych argumentów (`node --test tests/` nie działa na Node 22).
+
+Patrz na linijkę **`# fail 0`** — to jedyna liczba, która coś znaczy. `# pass` rośnie
+z każdym dopisanym testem, więc nie ma sensu porównywać go z niczym zapisanym tutaj.
 Potrzebny jest tylko Node.js — żadnych `npm install`.
 
 ---
@@ -130,6 +141,11 @@ nie da się cofnąć).
 
 Postępy przepadną też same, jeśli wyczyścisz dane strony w przeglądarce
 albo otworzysz grę w trybie prywatnym.
+
+⚠️ **Otwieraj grę zawsze tak samo.** Przeglądarka trzyma postępy osobno dla każdego
+adresu: dwuklik w `index.html` (adres `file://…`) i uruchomienie przez lokalny serwer
+(`http://localhost:…`) to dla niej dwa różne miejsca, więc dostaniesz **dwa niezależne
+komplety statystyk** — i nic na ekranie nie podpowie, dlaczego wyniki nagle „zniknęły".
 
 ---
 
@@ -156,9 +172,34 @@ Jeśli zaczynasz edytować `js/`, żeby dodać materiał — coś poszło nie ta
 
 ---
 
+## Czego jeszcze nie ma
+
+Gra jest skończona i grywalna, ale w dwóch miejscach jest skromniejsza niż
+specyfikacja w `docs/`. Lepiej, żebyś wiedziała to od nas niż od syna:
+
+- **Trzy zestawy ortograficzne zamiast pięciu.** Są `ó/u`, `rz/ż`, `ch/h`.
+  Nie ma `ą/ę` ani `wielkiej litery`. Da się je dopisać bez ruszania `js/` —
+  patrz „Jak dopisać wyrazy ortograficzne" wyżej.
+- **Poziomy nie odblokowują się po kolei i odznaki nigdzie się nie zbierają.**
+  Specyfikacja przewidywała, że pokonanie bossa otwiera następny poziom. W grze
+  wszystkie poziomy są dostępne od początku, a odznaka pojawia się tylko na ekranie
+  wyniku po wygranej i nie jest nigdzie zapisywana. Na ekranie postępów jej nie
+  szukaj — nie ma tam takiej sekcji.
+
+---
+
 ## Znane usterki
 
-- **`morze` i `może` dają ten sam obrazek `mo_e`** (zestaw `rz czy ż` w
-  `dane/ortografia.js`). Dziecko nie ma jak odgadnąć, o który wyraz chodzi, więc
-  w połowie przypadków traci serce bez własnej winy. Do naprawy: usunąć jeden z tych
-  wyrazów albo dodać do pytania kontekst.
+Nic znanego. Usterka opisana tu wcześniej — `morze` i `może` renderowane oba jako
+`mo_e` — została naprawiona: wyraz `morze` zastąpiono wyrazem `dworzec` (ta sama
+wymiana `rz` → `r`, a `dwożec` nie jest żadnym słowem), a `może` nie ma w danych.
+
+Ta klasa błędu ma teraz siatkę bezpieczeństwa: **`node --test` sam wyłapuje dwa
+wyrazy renderujące się identycznie** i wskazuje oba po nazwie. Uruchom testy po
+każdej zmianie w `dane/ortografia.js`.
+
+Czego test nie sprawdzi za ciebie: czy zły wariant wstawiony w lukę nie tworzy innego
+prawdziwego polskiego słowa (szczegóły w sekcji o wyrazach ortograficznych).
+W obecnych danych zdarza się to raz — `nóż` z `u` daje `nuż` — i zostawiliśmy to
+świadomie: `nuż` żyje właściwie tylko w potocznym „a nuż", a `nóż` jest za dobrym
+przykładem wymiany `ó` → `o`, żeby go wyrzucać.

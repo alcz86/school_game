@@ -144,6 +144,31 @@ test('wyrazy wczesniej mylone wracaja czesciej', () => {
   assert.ok(bezWag < 150, 'bez wagi wyraz nie moze byc w kazdej rundzie (' + bezWag + '/200)');
 });
 
+test('zly wariant nie tworzy innego czestego polskiego slowa', () => {
+  // Recenzja: wstawienie ZLEGO wariantu w luke daje prawdziwe polskie slowo tylko
+  // dwa razy w calym pliku — `morze -> moze` (usuniete, zastapione przez `dworzec`)
+  // i `noz -> nuz`. `nuz` zostaje swiadomie: zyje wylacznie w potocznym "a nuz",
+  // a `noz` jest za dobrym nosnikiem wymiany o->o, zeby go wyrzucac.
+  //
+  // Ten test nie jest slownikiem — pilnuje konkretnej listy slow, ktore
+  // dziewieciolatek zna i ktore skusilyby go do "poprawnej" odpowiedzi na wyraz,
+  // o ktory nie bylo pytane.
+  const ZAKAZANE = ['może', 'morze', 'wóz', 'lód', 'miód', 'ważny', 'waży', 'góra', 'hart', 'chart'];
+  const DOZWOLONE_WYJATKI = ['nóż'];
+
+  for (const z of o.ZESTAWY) {
+    for (const w of z.wyrazy) {
+      if (DOZWOLONE_WYJATKI.includes(w.wyraz)) continue;
+      for (const zly of z.warianty) {
+        if (zly === w.poprawny) continue;
+        const forma = w.wyraz.slice(0, w.luka) + zly + w.wyraz.slice(w.luka + w.poprawny.length);
+        assert.ok(!ZAKAZANE.includes(forma),
+          `"${w.wyraz}" ze zlym wariantem "${zly}" daje prawdziwe slowo "${forma}"`);
+      }
+    }
+  }
+});
+
 test('generuj dla nieznanego zestawu zwraca pustą tablicę', () => {
   assert.deepStrictEqual(o.generuj('nie-ma-takiego', 5), []);
 });

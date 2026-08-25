@@ -89,6 +89,75 @@ test('uszkodzone dane w magazynie nie wywracają gry', () => {
   assert.deepStrictEqual(s.najczestszeBledy, []);
 });
 
+// ------------------------------------- pierwsze podejscie vs darmowa powtorka
+
+test('powtorka po pomylce nie wchodzi do skutecznosci, ale zlicza blad do wag', () => {
+  const p = postepy.utworz(magazynPamieciowy());
+  // dziecko myli pytanie, po dwoch krokach widzi je znowu i trafia (odpowiedz
+  // byla na ekranie 1,2 s wczesniej) — to NIE jest dowod wiedzy
+  p.zapiszOdpowiedz('matematyka', 'trudne', '7x8', false, true);
+  p.zapiszOdpowiedz('matematyka', 'trudne', '7x8', true, false);
+
+  const s = p.statystyki();
+  assert.strictEqual(s.tryby.matematyka.trudne.wszystkie, 1, 'powtorka nie zwieksza liczby prob');
+  assert.strictEqual(s.tryby.matematyka.trudne.poprawne, 0);
+  assert.strictEqual(s.tryby.matematyka.trudne.procent, 0, 'ekran rodzica ma pokazac 0%, nie 50%');
+  assert.deepStrictEqual(p.wagi('matematyka', 'trudne'), { '7x8': 1 }, 'blad musi karmic wagi');
+});
+
+test('zawyzenie procentu jest zablokowane na calej rundzie', () => {
+  const p = postepy.utworz(magazynPamieciowy());
+  // 10 pytan, dziecko umie 3 — reszte myli za pierwszym razem i poprawia w powtorce
+  for (let i = 0; i < 10; i++) {
+    const umie = i < 3;
+    p.zapiszOdpowiedz('matematyka', 'trudne', 'q' + i, umie, true);
+    if (!umie) p.zapiszOdpowiedz('matematyka', 'trudne', 'q' + i, true, false);
+  }
+  const s = p.statystyki();
+  assert.strictEqual(s.tryby.matematyka.trudne.procent, 30,
+    'realna wiedza to 30% — bez poprawki ekran pokazywalby 65%');
+});
+
+test('brak piatego argumentu znaczy pierwsze podejscie (zgodnosc wstecz)', () => {
+  const p = postepy.utworz(magazynPamieciowy());
+  p.zapiszOdpowiedz('matematyka', 'trudne', '7x8', true);
+  assert.strictEqual(p.statystyki().tryby.matematyka.trudne.wszystkie, 1);
+});
+
+// -------------------------------- liczba prob, suma mylonych, "zawsze mylone"
+
+test('statystyki podaja liczbe prob i sume WSZYSTKICH mylonych pozycji', () => {
+  const p = postepy.utworz(magazynPamieciowy());
+  for (let i = 0; i < 15; i++) p.zapiszOdpowiedz('matematyka', 'trudne', 'q' + i, false, true);
+  const s = p.statystyki();
+  assert.strictEqual(s.najczestszeBledy.length, 10, 'lista nadal ucieta do 10');
+  assert.strictEqual(s.mylonePozycje, 15, 'ale suma musi znac wszystkie 15');
+  for (const b of s.najczestszeBledy) {
+    assert.strictEqual(b.proby, 1);
+    assert.strictEqual(b.bledyPierwsze, 1);
+  }
+});
+
+test('zawszeMylone lapie pozycje 0/2, ktore wypadaja z listy najczestszych', () => {
+  const p = postepy.utworz(magazynPamieciowy());
+  // pozycja czesto mylona, ale w wiekszosci trafiana
+  for (let i = 0; i < 4; i++) p.zapiszOdpowiedz('matematyka', 'trudne', 'czeste', false, true);
+  for (let i = 0; i < 16; i++) p.zapiszOdpowiedz('matematyka', 'trudne', 'czeste', true, true);
+  // pozycja mylona ZAWSZE, tylko dwa razy
+  p.zapiszOdpowiedz('matematyka', 'trudne', 'zawsze', false, true);
+  p.zapiszOdpowiedz('matematyka', 'trudne', 'zawsze', false, true);
+
+  const s = p.statystyki();
+  const zawsze = s.zawszeMylone.map((b) => b.id);
+  assert.deepStrictEqual(zawsze, ['zawsze']);
+  assert.strictEqual(s.zawszeMylone[0].proby, 2);
+  assert.strictEqual(s.zawszeMylone[0].bledyPierwsze, 2);
+  assert.ok(!zawsze.includes('czeste'), 'pozycja z 16 trafieniami nie jest "zawsze mylona"');
+
+  const czeste = s.najczestszeBledy.find((b) => b.id === 'czeste');
+  assert.strictEqual(czeste.proby, 20, 'lista ma pokazac mianownik, nie sama liczbe pomylek');
+});
+
 const OBCE_KSZTALTY = [
   '{to nie jest json',
   'null',

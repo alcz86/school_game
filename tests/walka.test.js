@@ -131,3 +131,25 @@ test('odpowiedz nie mutuje przekazanego stanu', () => {
   assert.strictEqual(s0.zycieBossa, 10);
   assert.strictEqual(s0.combo, 0);
 });
+
+// -------------------------------------------------------- odpowiedzi liczbowe
+
+test('odpowiedz czysto liczbowa porownuje sie liczbowo — "07" to 7', () => {
+  const P7 = [{ id: '1x7', tresc: '1 x 7', odpowiedz: '7' }];
+  let s = walka.nowaWalka(P7, { zycieBossa: 10 });
+  s = walka.odpowiedz(s, '07');
+  assert.strictEqual(s.ostatnia.poprawna, true, '"07" musi zaliczyc sie jako 7');
+  assert.strictEqual(s.serca, 3, 'nie wolno odbierac serca za wiodace zero');
+});
+
+test('porownanie liczbowe nie psuje odpowiedzi tekstowych ani pustej odpowiedzi', () => {
+  // Number('') === 0 — pulapka, ktora juz raz wystapila w tym projekcie.
+  assert.strictEqual(walka.rowne('', '0'), false, 'pusta odpowiedz nie moze zaliczyc "0"');
+  assert.strictEqual(walka.rowne('   ', '0'), false);
+  assert.strictEqual(walka.rowne('0x10', '16'), false, 'bez rzutowania hexa');
+  assert.strictEqual(walka.rowne('7.0', '7'), false, 'kropka nie wchodzi do galezi liczbowej');
+  assert.strictEqual(walka.rowne('  NOTEBOOK ', 'notebook'), true);
+  assert.strictEqual(walka.rowne('rz', 'z'), false);
+  assert.strictEqual(walka.rowne('0', '0'), true);
+  assert.strictEqual(walka.rowne('007', '7'), true);
+});
