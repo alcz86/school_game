@@ -75,6 +75,24 @@ test('treść ma dokładnie jeden podkreślnik, także dla dwuznaków', () => {
   }
 });
 
+test('zaden wyraz nie renderuje sie identycznie jak inny w tym samym zestawie', () => {
+  // Bez tego dziecko dostaje luke, ktorej NIE DA SIE rozstrzygnac: `morze` i `może`
+  // renderowaly sie oba jako "mo_e", wiec w polowie przypadkow tracilo serce mimo
+  // poprawnego rozumowania, a wyjasnienie dotyczylo wyrazu, o ktory nie bylo pytane.
+  for (const z of o.ZESTAWY) {
+    const widziane = new Map();
+    for (const w of z.wyrazy) {
+      const tresc = w.wyraz.slice(0, w.luka) + '_' + w.wyraz.slice(w.luka + w.poprawny.length);
+      if (widziane.has(tresc)) {
+        assert.fail(
+          `kolizja w ${z.id}: "${w.wyraz}" i "${widziane.get(tresc)}" oba renderuja sie jako "${tresc}"`
+        );
+      }
+      widziane.set(tresc, w.wyraz);
+    }
+  }
+});
+
 test('warianty w pytaniu to kopia, nie referencja do danych źródłowych', () => {
   const zestaw = o.ZESTAWY.find((z) => z.id === 'rz-z');
   const przed = zestaw.warianty.slice();
