@@ -190,7 +190,18 @@ specyfikacja w `docs/`. Lepiej, żebyś wiedziała to od nas niż od syna:
 
 ## Znane usterki
 
-Nic znanego. Usterka opisana tu wcześniej — `morze` i `może` renderowane oba jako
+**Przed pierwszym użyciem kliknij raz „Wyczyść postępy" na ekranie 📊.** Sposób liczenia
+skuteczności zmienił się przy ostatniej poprawce: wcześniej powtórzone pytanie (to, na które
+dziecko już zobaczyło odpowiedź) liczyło się jak zwykła odpowiedź i zawyżało wynik nawet
+o 15 punktów procentowych. Statystyki zapisane wcześniej są więc zawyżone i wymieszają się
+z nowymi — porównanie „w zeszłym tygodniu 65%, dziś 40%" wyglądałoby jak regres syna,
+a byłoby tylko zmianą metody pomiaru.
+
+Drobiazg: w rundzie matematyki to samo działanie potrafi wypaść dwa razy. Drugie wystąpienie
+jest traktowane jak powtórka, więc czasem na liście mylonych pojawi się wiersz „0 błędów
+z 1 próby". Nieszkodliwe, ale wygląda dziwnie.
+
+Usterka opisana tu wcześniej — `morze` i `może` renderowane oba jako
 `mo_e` — została naprawiona: wyraz `morze` zastąpiono wyrazem `dworzec` (ta sama
 wymiana `rz` → `r`, a `dwożec` nie jest żadnym słowem), a `może` nie ma w danych.
 
