@@ -89,11 +89,24 @@ Słówka podzielone na **zestawy z etykietą**, nie jedną listę:
 - `Klasa 2 — powtórka` — z Picture Dictionary (podręcznik klasy 2, zdjęcia w Google Photos)
 - `Klasa 3 — Unit 1`, `Unit 2`, … — dopisywane w trakcie roku szkolnego
 
-Formaty pytań wg poziomu:
-- poziom 1–2: PL → EN, wybór z 4 odpowiedzi
-- poziom 3+: PL → EN, wpisywanie z klawiatury (tolerancja wielkości liter i spacji)
+Każde słówko należy do **rozdziału** (unitu) zgodnie z podręcznikiem.
 
-Dodanie nowego unitu = dopisanie jednego bloku w `slowka.js`.
+**Wybór zakresu — zawsze, przy każdej rundzie angielskiego.** Po wybraniu zestawu dziecko
+wybiera rozdział, a przy nim jedną z dwóch opcji:
+
+- **Tylko rozdział N** — bieżący materiał, to co przerabiają w tym tygodniu
+- **Od początku do rozdziału N** — kumulacyjnie, wszystkie słówka od rozdziału 1 do N
+
+Druga opcja jest tu tym, czym w matematyce poziom „Wszystko": powtórka przed sprawdzianem,
+gdzie stary materiał miesza się z nowym. To jedyny tryb, który pokazuje, czy słówka z
+września wciąż siedzą w grudniu. Wybór jest widoczny zawsze — nie chowa się za żadnym
+poziomem ani ustawieniem.
+
+Formaty pytań wg poziomu:
+- zestawy powtórkowe (klasa 2): PL → EN, wybór z 4 odpowiedzi
+- zestawy bieżące (klasa 3+): PL → EN, wpisywanie z klawiatury (tolerancja wielkości liter i spacji)
+
+Dodanie nowego unitu = dopisanie słów z nowym numerem `unit` w `slowka.js`.
 
 **Źródło treści na start:** 5 stron Picture Dictionary z podręcznika klasy 2. Angielskie
 słowa przepisywane ze zdjęć; **polskie tłumaczenia dopisywane przez Claude'a i przedstawiane
@@ -108,7 +121,9 @@ jest częścią rozgrywki.
 
 Pokazuje:
 - % poprawnych odpowiedzi w każdym trybie i na każdym poziomie
-- **10 najczęściej mylonych pozycji** z nazwą wprost: `7×8`, `rz/ż: żaba`, `słówko: bread`
+- **10 najczęściej mylonych pozycji** z nazwą wprost: `7 × 8`, `góra (ó/u)`, `fridge — lodówka`
+  (przykłady z realnych danych; wcześniejsze `słówko: bread` było zmyślone — w zestawie
+  powtórkowym z Picture Dictionary nie ma słowa *bread*)
 - osobno wyniki dla zestawu „Klasa 2 — powtórka" i zestawów klasy 3 — widać, czy stary
   materiał się trzyma, gdy dochodzi nowy
 - liczbę dni z rzędu, w których syn grał

@@ -23,7 +23,7 @@
 - **Bez timera i bez presji czasu** w wersji pierwszej.
 - **Żadne dane nie opuszczają urządzenia.** Brak requestów sieciowych, brak analityki.
 - **Responsywność:** działa na szerokości od 320 px do desktopu. Przyciski odpowiedzi min. 44×44 px.
-- **Testy uruchamiane przez** `node --test tests/` z katalogu projektu.
+- **Testy uruchamiane przez** `node --test` (bez argumentu — sam znajduje `tests/*.test.js`; forma `node --test tests/` NIE działa na Node 22, traktuje katalog jak moduł)` z katalogu projektu.
 - Repo git już zainicjowane w `/Users/aczepierga/Desktop/gra-szkolna`.
 
 ---
@@ -768,7 +768,8 @@ git commit -m "feat: zestawy ortograficzne z zasada przy kazdym wyrazie"
 
 **Interfaces:**
 - Consumes: nic
-- Produces: `GRA.slowka.ZESTAWY` — tablica `{ id, nazwa, klasa, slowa: [{ pl, en }] }`. `GRA.slowka.generuj(idZestawu, ile, tryb, wagi)` → pytania `{ id, tresc, odpowiedz, wyjasnienie, warianty }`; przy `tryb === 'wybor'` pole `warianty` to 4 propozycje po angielsku (jedna poprawna), przy `tryb === 'wpisywanie'` — `null`.
+- Produces: `GRA.slowka.ZESTAWY` — tablica `{ id, nazwa, klasa, slowa: [{ pl, en, unit }] }`. `GRA.slowka.rozdzialy(idZestawu)` → posortowana rosnąco tablica numerów rozdziałów obecnych w zestawie. `GRA.slowka.generuj(idZestawu, ile, tryb, wagi, zakres)` → pytania `{ id, tresc, odpowiedz, wyjasnienie, warianty }`; przy `tryb === 'wybor'` pole `warianty` to 4 propozycje po angielsku (jedna poprawna), przy `tryb === 'wpisywanie'` — `null`.
+  `zakres` (opcjonalny) wybiera materiał: `{ tylko: N }` — wyłącznie rozdział N; `{ do: N }` — kumulacyjnie rozdziały 1..N; pominięty lub `null` — cały zestaw. Warianty w trybie `wybor` losowane są **tylko z wybranego zakresu** — inaczej dziecko dostałoby jako dystraktor słowo, którego jeszcze nie zna.
 
 **Uwaga wykonawcza:** ten task ma **bramkę zatwierdzenia przez Aleksandrę** w kroku 4. Nie wolno jej pominąć.
 
@@ -817,6 +818,45 @@ test('tryb wpisywanie nie podaje wariantów', () => {
     assert.strictEqual(p.warianty, null);
   }
 });
+
+test('każde słowo ma numer rozdziału', () => {
+  for (const z of s.ZESTAWY) {
+    for (const w of z.slowa) {
+      assert.ok(Number.isInteger(w.unit) && w.unit >= 1, `zły unit przy "${w.en}" w ${z.id}`);
+    }
+  }
+});
+
+test('rozdzialy zwraca posortowaną listę bez duplikatów', () => {
+  const r = s.rozdzialy('klasa2-powtorka');
+  assert.ok(r.length >= 2, `oczekiwano wielu rozdziałów, było ${r.length}`);
+  assert.deepStrictEqual(r, Array.from(new Set(r)).sort((a, b) => a - b));
+});
+
+test('zakres tylko:N daje wyłącznie slowa z rozdzialu N', () => {
+  const zestaw = s.ZESTAWY.find((z) => z.id === 'klasa2-powtorka');
+  const n = s.rozdzialy('klasa2-powtorka')[1];
+  const dozwolone = new Set(zestaw.slowa.filter((w) => w.unit === n).map((w) => w.en));
+  for (const p of s.generuj('klasa2-powtorka', 20, 'wybor', null, { tylko: n })) {
+    assert.ok(dozwolone.has(p.odpowiedz), `"${p.odpowiedz}" spoza rozdzialu ${n}`);
+    for (const w of p.warianty) {
+      assert.ok(dozwolone.has(w), `wariant "${w}" spoza rozdzialu ${n}`);
+    }
+  }
+});
+
+test('zakres do:N daje slowa z rozdzialow 1..N i nic ponad', () => {
+  const zestaw = s.ZESTAWY.find((z) => z.id === 'klasa2-powtorka');
+  const rozdzialy = s.rozdzialy('klasa2-powtorka');
+  const n = rozdzialy[rozdzialy.length - 2];
+  const dozwolone = new Set(zestaw.slowa.filter((w) => w.unit <= n).map((w) => w.en));
+  const uzyte = new Set();
+  for (const p of s.generuj('klasa2-powtorka', 40, 'wybor', null, { do: n })) {
+    assert.ok(dozwolone.has(p.odpowiedz), `"${p.odpowiedz}" spoza zakresu 1..${n}`);
+    uzyte.add(p.odpowiedz);
+  }
+  assert.ok(uzyte.size > 1, 'zakres kumulacyjny powinien mieszać materiał z wielu rozdziałów');
+});
 ```
 
 - [ ] **Step 2: Uruchom testy i potwierdź, że nie przechodzą**
@@ -842,6 +882,14 @@ Zasady:
 Przedstaw pełną listę w formacie `en — pl`, pogrupowaną po unitach, plus osobną listę pozycji nieczytelnych. Zapytaj o poprawki. **Nie przechodź dalej bez wyraźnej zgody.** To wymóg ze specyfikacji (§3.3), nie uprzejmość — błędne tłumaczenie utrwali się jako nauczone.
 
 - [ ] **Step 5: Napisz `dane/slowka.js` z zatwierdzoną listą**
+
+> **UWAGA — poniższy blok jest szkieletem SPRZED dodania wyboru zakresu rozdziałów.**
+> Wiążące są sekcja **Interfaces** tego taska i testy z kroku 1, nie ten blok. Szkielet
+> nie zna `rozdzialy()`, nie ma piątego argumentu `zakres`, eksportuje tylko
+> `{ ZESTAWY, generuj }` i losuje dystraktory z całego zestawu zamiast z zakresu.
+> Skopiowany dosłownie daje cztery czerwone testy. Użyj go jako punktu wyjścia dla
+> struktury pliku, nie jako gotowej implementacji. Krok 6 mówi „5 passing" — testów
+> słówek jest dziewięć.
 
 ```js
 (function () {
@@ -1255,10 +1303,31 @@ i dwie funkcje przed `const api`:
       // Spec §3.3: zestawy powtórkowe (klasa 2) — wybór z 4; nowy materiał (klasa 3+) — wpisywanie
       const zestaw = slowka.ZESTAWY.find((z) => z.id === idPoziomu);
       const trybPytania = zestaw && zestaw.klasa >= 3 ? 'wpisywanie' : 'wybor';
-      return slowka.generuj(idPoziomu, ile, trybPytania, w);
+      return slowka.generuj(idPoziomu, ile, trybPytania, w, zakres);
     }
     return [];
   }
+```
+
+**Zakres rozdziałów (spec §3.3).** `pytaniaDla` przyjmuje piąty argument `zakres`, przekazywany
+w niezmienionej postaci do `slowka.generuj`; dla matematyki i ortografii jest ignorowany.
+Pełna sygnatura: `pytaniaDla(tryb, idPoziomu, ile, zakres)`. Statystyki błędów mają być
+liczone **per zestaw, nie per zakres** — to samo słówko pomylone w rundzie „tylko rozdział 3"
+i w rundzie „do rozdziału 5" to ta sama pozycja do przećwiczenia, więc `wagi(tryb, idPoziomu)`
+zostaje bez zmian.
+
+**Guard na pustą pulę pytań (znalezisko z Taska 2).** `nowaWalka([])` daje stan zamrożony:
+`aktualne` jest `null`, `skonczona` nigdy nie staje się `true` i nie ma wyjścia z ekranu.
+Ponieważ `pytaniaDla` jest jedynym producentem pytań, guard należy tutaj: jeśli wynik jest
+pustą tablicą (np. wybrany rozdział nie ma słówek), zwróć pustą tablicę, a wołający
+(Task 8) MUSI to obsłużyć komunikatem „Ten rozdział nie ma jeszcze słówek" zamiast
+uruchamiać walkę. Dopisz test:
+
+```js
+test('pytaniaDla dla nieistniejacego poziomu zwraca pusta tablice, nie wybucha', () => {
+  assert.deepStrictEqual(app.pytaniaDla('angielski', 'nie-ma-takiego', 10), []);
+  assert.deepStrictEqual(app.pytaniaDla('nie-ma-trybu', 'cokolwiek', 10), []);
+});
 ```
 
 Rozszerz eksport: `const api = { EKRANY, pokazEkran, poziomyDla, pytaniaDla, postepy };`
@@ -1286,7 +1355,7 @@ i podłącz obsługę kliknięć (delegacja zdarzeń na `#gra`, bez `onclick` w 
 
 - [ ] **Step 4: Uruchom testy i potwierdź, że przechodzą**
 
-Run: `node --test tests/`
+Run: `node --test` (bez argumentu — sam znajduje `tests/*.test.js`; forma `node --test tests/` NIE działa na Node 22, traktuje katalog jak moduł)`
 Expected: PASS — wszystkie pliki testowe zielone
 
 - [ ] **Step 5: Sprawdź w przeglądarce**
@@ -1312,6 +1381,27 @@ git commit -m "feat: ekran wyboru poziomu dla trzech trybow"
 **Interfaces:**
 - Consumes: `GRA.walka`, `GRA.app.pytaniaDla`, `GRA.app.postepy`
 - Produces: `GRA.app.rozpocznijWalke(tryb, idPoziomu)` — buduje stan i renderuje ekran walki. Stan trzymany w zmiennej modułu, nie w DOM.
+
+- [ ] **Step 0: Ekran wyboru rozdziału — tylko dla trybu angielskiego (spec §3.3)**
+
+Po wybraniu zestawu w trybie `angielski` NIE startuj od razu walki. Pokaż pośredni ekran
+wyboru zakresu, zbudowany z `GRA.slowka.rozdzialy(idZestawu)`. Dla każdego rozdziału N dwa
+przyciski:
+
+- **„Tylko rozdział N"** → `pytaniaDla('angielski', idZestawu, ile, { tylko: N })`
+- **„Od początku do N"** → `pytaniaDla('angielski', idZestawu, ile, { do: N })`
+
+Ten wybór jest obowiązkowy przy każdej rundzie angielskiego — nie ma ścieżki „graj bez
+wybierania zakresu" i nie chowaj go za żadnym ustawieniem. Tryby `matematyka` i `ortografia`
+pomijają ten ekran i idą prosto do walki.
+
+Jeśli `pytaniaDla` zwróci pustą tablicę (rozdział bez słówek), pokaż komunikat
+„Ten rozdział nie ma jeszcze słówek" i wróć do wyboru — NIE wywołuj `nowaWalka([])`,
+bo daje stan zamrożony bez wyjścia.
+
+Ekran korzysta z istniejącej sekcji `#ekran-wybor-poziomu` albo dostaje własną — jeśli
+własną, dopisz jej id do `EKRANY` w `js/app.js` i zaktualizuj test w `tests/app.test.js`,
+który sprawdza dokładną zawartość tej tablicy.
 
 - [ ] **Step 1: Zbuduj ekran walki**
 
@@ -1395,7 +1485,7 @@ git commit -m "feat: ekran postepow dla rodzica"
 
 - [ ] **Step 1: Uruchom komplet testów**
 
-Run: `cd ~/Desktop/gra-szkolna && node --test tests/`
+Run: `cd ~/Desktop/gra-szkolna && node --test` (bez argumentu — sam znajduje `tests/*.test.js`; forma `node --test tests/` NIE działa na Node 22, traktuje katalog jak moduł)`
 Expected: wszystko zielone, zero pominiętych
 
 - [ ] **Step 2: Przejdź listę kryteriów ze specyfikacji §6, jedno po drugim**

@@ -1,0 +1,36 @@
+<!DOCTYPE html>
+<html lang="pl">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Pojedynek z Potworem</title>
+  <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+  <main id="gra">
+    <section class="ekran" id="ekran-menu">
+      <h1>Pojedynek z Potworem</h1>
+      <p class="podtytul">Wybierz, z czym dziś walczysz</p>
+      <div class="kafle">
+        <button class="kafel" data-tryb="matematyka"><span class="ikona">✖️</span>Tabliczka mnożenia</button>
+        <button class="kafel" data-tryb="ortografia"><span class="ikona">✍️</span>Ortografia</button>
+        <button class="kafel" data-tryb="angielski"><span class="ikona">🇬🇧</span>Angielski</button>
+      </div>
+      <!-- Wejście na ekran postępów dla rodzica (spec §4): mała, nierzucająca się
+           w oczy ikona, nie część rozgrywki. Obsługa w js/app.js (delegacja na #gra). -->
+      <button id="btn-rodzic" class="link-rodzic" title="Postępy" aria-label="Postępy dla rodzica">📊</button>
+    </section>
+    <section class="ekran" id="ekran-wybor-poziomu" hidden></section>
+    <section class="ekran" id="ekran-wybor-rozdzialu" hidden></section>
+    <section class="ekran" id="ekran-walka" hidden></section>
+    <section class="ekran" id="ekran-wynik" hidden></section>
+    <section class="ekran" id="ekran-rodzic" hidden></section>
+  </main>
+  <script src="dane/matematyka.js"></script>
+  <script src="dane/ortografia.js"></script>
+  <script src="dane/slowka.js"></script>
+  <script src="js/walka.js"></script>
+  <script src="js/postepy.js"></script>
+  <script src="js/app.js"></script>
+</body>
+</html>

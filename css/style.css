@@ -1,0 +1,183 @@
+:root {
+  --tlo: #0d2818;
+  --karta: #16452c;
+  --akcent: #b6e86a;
+  --tekst: #f1f8f2;
+  --dobrze: #7ee8a6;
+  --zle: #ff7a7a;
+}
+* { box-sizing: border-box; }
+body {
+  margin: 0;
+  min-height: 100vh;
+  background: var(--tlo);
+  color: var(--tekst);
+  font-family: system-ui, -apple-system, "Segoe UI", sans-serif;
+  display: flex;
+  justify-content: center;
+}
+#gra { width: 100%; max-width: 640px; padding: 1.5rem 1rem 3rem; }
+h1 { font-size: clamp(1.75rem, 7vw, 2.5rem); text-align: center; margin: .5rem 0; }
+.podtytul { text-align: center; opacity: .75; margin-top: 0; }
+.kafle { display: grid; gap: 1rem; margin-top: 2rem; }
+.kafel {
+  display: flex; align-items: center; gap: .9rem;
+  min-height: 84px; padding: 1rem 1.25rem;
+  font-size: 1.25rem; font-weight: 600;
+  color: var(--tekst); background: var(--karta);
+  border: 2px solid transparent; border-radius: 18px; cursor: pointer;
+}
+.kafel:hover, .kafel:focus-visible { border-color: var(--akcent); outline: none; }
+.ikona { font-size: 2rem; }
+.link-rodzic {
+  position: fixed; right: .75rem; bottom: .75rem;
+  width: 44px; height: 44px; font-size: 1.1rem;
+  background: transparent; color: var(--tekst);
+  border: 1px solid rgba(255,255,255,.25); border-radius: 50%;
+  opacity: .4; cursor: pointer;
+}
+.link-rodzic:hover { opacity: 1; }
+/* Spójność z kaflami menu — bez tego przycisk był jedynym elementem gry
+   niewidocznym przy nawigacji klawiaturą. */
+.link-rodzic:focus-visible { opacity: 1; border-color: var(--akcent); outline: none; }
+@media (min-width: 480px) { .kafle { grid-template-columns: 1fr; } }
+
+.wstecz {
+  display: inline-flex; align-items: center;
+  min-height: 44px; min-width: 44px; padding: .5rem 1rem;
+  font-size: 1rem; font-weight: 600;
+  color: var(--tekst); background: transparent;
+  border: 1px solid rgba(255,255,255,.25); border-radius: 12px; cursor: pointer;
+  margin-bottom: 1rem;
+}
+.wstecz:hover, .wstecz:focus-visible { border-color: var(--akcent); outline: none; }
+#ekran-wybor-poziomu h2 { margin: .25rem 0 1rem; }
+.kafel-poziom small { opacity: .75; font-weight: 400; }
+
+/* ---------------------------------------------- ekran wyboru rozdziału */
+#ekran-wybor-rozdzialu h2 { margin: .25rem 0 1rem; }
+.komunikat {
+  padding: .75rem 1rem; margin: 0 0 1rem;
+  background: rgba(255,122,122,.15);
+  border: 1px solid var(--zle); border-radius: 12px;
+}
+.rozdzialy { display: grid; gap: .75rem; }
+.rozdzial {
+  background: var(--karta); border-radius: 16px; padding: .75rem;
+  display: grid; gap: .5rem;
+}
+.rozdzial h3 { margin: 0 0 .1rem; font-size: 1.05rem; }
+.btn-zakres {
+  min-height: 48px; padding: .6rem 1rem;
+  font-size: 1rem; font-weight: 600; text-align: left;
+  color: var(--tlo); background: var(--akcent);
+  border: 2px solid var(--akcent); border-radius: 12px; cursor: pointer;
+}
+.btn-zakres-do { color: var(--tekst); background: transparent; }
+.btn-zakres:hover, .btn-zakres:focus-visible { outline: none; filter: brightness(1.1); }
+
+/* ------------------------------------------------------- ekran walki */
+.boss { text-align: center; margin-bottom: .5rem; }
+.potwor { font-size: clamp(3rem, 18vw, 5rem); line-height: 1.1; }
+.pasek {
+  height: 18px; border-radius: 10px; overflow: hidden;
+  background: rgba(255,255,255,.15); border: 1px solid rgba(255,255,255,.2);
+}
+.pasek-wypelnienie {
+  height: 100%; background: linear-gradient(90deg, var(--zle), var(--akcent));
+  transition: width .3s ease;
+}
+.pasek-opis { font-size: .85rem; opacity: .7; margin-top: .25rem; }
+.serca { text-align: center; font-size: 1.9rem; letter-spacing: .3rem; color: var(--zle); }
+.serce-puste { opacity: .22; }
+.combo { min-height: 2rem; text-align: center; font-size: 1.15rem; font-weight: 700; color: var(--akcent); }
+.combo-pusto { visibility: hidden; }
+.pytanie {
+  text-align: center; font-size: clamp(1.8rem, 9vw, 2.6rem);
+  font-weight: 700; margin: .75rem 0 1.25rem; overflow-wrap: anywhere;
+}
+.wpis {
+  min-height: 60px; margin: 0 auto 1rem; max-width: 260px;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 2rem; font-weight: 700;
+  background: var(--karta); border-radius: 14px;
+}
+.klawiatura { display: grid; grid-template-columns: repeat(3, 1fr); gap: .5rem; }
+.klawisz {
+  min-height: 56px; min-width: 44px;
+  font-size: 1.4rem; font-weight: 700;
+  color: var(--tekst); background: var(--karta);
+  border: 2px solid transparent; border-radius: 14px; cursor: pointer;
+}
+.klawisz:hover, .klawisz:focus-visible { border-color: var(--akcent); outline: none; }
+.klawisz-ok { color: var(--tlo); background: var(--akcent); font-size: 1.2rem; }
+.klawisz-usun { font-size: 1rem; }
+.warianty { display: grid; gap: .75rem; }
+.wariant {
+  min-height: 64px; padding: .75rem 1rem;
+  font-size: 1.4rem; font-weight: 700;
+  color: var(--tekst); background: var(--karta);
+  border: 2px solid transparent; border-radius: 16px; cursor: pointer;
+  overflow-wrap: anywhere;
+}
+.wariant:hover, .wariant:focus-visible { border-color: var(--akcent); outline: none; }
+.wpisywanie { display: flex; gap: .5rem; flex-wrap: wrap; }
+#pole-odp {
+  flex: 1 1 160px; min-height: 56px; padding: .5rem .9rem;
+  font-size: 1.3rem; color: var(--tekst); background: var(--karta);
+  border: 2px solid rgba(255,255,255,.2); border-radius: 14px;
+}
+#pole-odp:focus { border-color: var(--akcent); outline: none; }
+.wpisywanie .klawisz-ok { flex: 0 0 96px; }
+
+.feedback { border-radius: 16px; padding: 1rem; text-align: center; margin-top: .5rem; }
+.feedback-tytul { margin: 0; font-size: 1.35rem; font-weight: 700; overflow-wrap: anywhere; }
+.feedback-dobrze { background: rgba(126,232,166,.16); border: 2px solid var(--dobrze); color: var(--dobrze); }
+.feedback-zle { background: rgba(255,122,122,.14); border: 2px solid var(--zle); color: var(--zle); }
+.wyjasnienie { margin: .5rem 0 0; font-size: 1rem; color: var(--tekst); opacity: .9; overflow-wrap: anywhere; }
+
+/* ------------------------------------------------------ ekran wyniku */
+.wynik-tytul { text-align: center; font-size: clamp(1.4rem, 6vw, 2rem); margin: .5rem 0; }
+.odznaka { text-align: center; font-size: 1.3rem; font-weight: 700; color: var(--akcent); }
+.statystyki-rundy { list-style: none; padding: 0; text-align: center; font-size: 1.1rem; }
+.statystyki-rundy li { margin: .35rem 0; }
+.naglowek-pomylki { margin: 1.5rem 0 .5rem; }
+.pomylki { list-style: none; padding: 0; margin: 0; display: grid; gap: .6rem; }
+.pomylki li {
+  display: grid; gap: .2rem;
+  background: var(--karta); border-radius: 14px; padding: .75rem 1rem;
+}
+.pomylka-tresc { font-size: 1.2rem; font-weight: 700; overflow-wrap: anywhere; }
+.pomylka-odp { color: var(--dobrze); font-weight: 700; overflow-wrap: anywhere; }
+.przyciski-wyniku { display: grid; gap: .75rem; margin-top: 1.5rem; }
+.kafel-akcja { justify-content: center; min-height: 60px; }
+
+/* ----------------------------------------------------- ekran rodzica */
+#ekran-rodzic h2 { margin: .25rem 0 1rem; }
+#ekran-rodzic h3 { margin: 1.5rem 0 .5rem; font-size: 1.05rem; opacity: .85; }
+.komunikat-info { background: rgba(255,255,255,.07); border-color: rgba(255,255,255,.25); }
+.seria { margin: 0; padding: .75rem 1rem; background: var(--karta); border-radius: 14px; }
+.tabela-postepy {
+  width: 100%; border-collapse: collapse;
+  background: var(--karta); border-radius: 14px; overflow: hidden;
+}
+.tabela-postepy th, .tabela-postepy td {
+  padding: .55rem .6rem; text-align: left; font-size: .95rem;
+  border-bottom: 1px solid rgba(255,255,255,.08); overflow-wrap: anywhere;
+}
+.tabela-postepy tr:last-child td { border-bottom: none; }
+.tabela-postepy th { font-size: .8rem; text-transform: uppercase; letter-spacing: .04em; opacity: .7; }
+.td-procent { font-weight: 700; text-align: right; white-space: nowrap; }
+.procent-slaby { color: var(--zle); }
+.td-brak { font-weight: 400; opacity: .55; }
+.td-pozycja { font-weight: 700; font-size: 1.05rem; }
+.td-skad { opacity: .7; font-size: .85rem; }
+.td-bledy { text-align: right; font-weight: 700; color: var(--zle); white-space: nowrap; }
+.kafel-reset { border-color: var(--zle); color: var(--zle); font-size: 1.05rem; }
+.kafel-reset:hover, .kafel-reset:focus-visible { border-color: var(--zle); background: rgba(255,122,122,.15); }
+@media (max-width: 380px) {
+  .tabela-postepy th, .tabela-postepy td { padding: .45rem .35rem; font-size: .85rem; }
+  /* Na 320 px wersaliki z odstępem rozpychały nagłówki i łamały je w środku słowa
+     („WY / NIK"). Przy tej szerokości liczy się czytelność, nie ozdoba. */
+  .tabela-postepy th { text-transform: none; letter-spacing: 0; font-size: .78rem; }
+}
