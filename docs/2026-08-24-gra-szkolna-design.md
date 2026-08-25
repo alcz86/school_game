@@ -121,7 +121,9 @@ jest częścią rozgrywki.
 
 Pokazuje:
 - % poprawnych odpowiedzi w każdym trybie i na każdym poziomie
-- **10 najczęściej mylonych pozycji** z nazwą wprost: `7×8`, `rz/ż: żaba`, `słówko: bread`
+- **10 najczęściej mylonych pozycji** z nazwą wprost: `7 × 8`, `góra (ó/u)`, `fridge — lodówka`
+  (przykłady z realnych danych; wcześniejsze `słówko: bread` było zmyślone — w zestawie
+  powtórkowym z Picture Dictionary nie ma słowa *bread*)
 - osobno wyniki dla zestawu „Klasa 2 — powtórka" i zestawów klasy 3 — widać, czy stary
   materiał się trzyma, gdy dochodzi nowy
 - liczbę dni z rzędu, w których syn grał
