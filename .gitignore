@@ -1,2 +1,10 @@
 .DS_Store
 node_modules/
+.superpowers/
+
+# Kopie tworzone przez synchronizacje plikow (iCloud Drive / Dropbox) gdy uzna,
+# ze ten sam plik zmienil sie w dwoch miejscach naraz. Wzorzec: "nazwa 2.js".
+# Pojawialy sie juz trzykrotnie po 17 sztuk naraz i zasmiecaly kazdy commit.
+# Trwale rozwiazanie: przeniesc katalog gry z Pulpitu poza obszar synchronizacji.
+* [0-9].*
+* [0-9]

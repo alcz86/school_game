@@ -87,7 +87,15 @@ zamiast ortografii.
 Słówka podzielone na **zestawy z etykietą**, nie jedną listę:
 
 - `Klasa 2 — powtórka` — z Picture Dictionary (podręcznik klasy 2, zdjęcia w Google Photos)
-- `Klasa 3 — Unit 1`, `Unit 2`, … — dopisywane w trakcie roku szkolnego
+- `Klasa 3` — JEDEN zestaw obejmujący wszystkie rozdziały roku, dopisywane w trakcie
+  (zrealizowane 2026-09-06: rozdziały 1–8, 112 słów)
+- `Klasa 3 — święta i okazje` — materiał sezonowy poza progresją rozdziałów (22 słowa)
+
+> **Dlaczego jeden zestaw, a nie osobny na każdy rozdział.** Wcześniejsza wersja tej sekcji
+> zakładała `Klasa 3 — Unit 1`, `Unit 2` itd. jako osobne zestawy. To by uniemożliwiło
+> „od początku do rozdziału N" opisane niżej — powtórka narastająca działa wyłącznie
+> w obrębie jednego zestawu, a to ona jest głównym powodem, dla którego wybór zakresu
+> powstał. Materiał sezonowy siedzi osobno, żeby nie wpadał do rundy „od początku do 5".
 
 Każde słówko należy do **rozdziału** (unitu) zgodnie z podręcznikiem.
 
