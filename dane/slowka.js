@@ -173,8 +173,196 @@
         { pl: 'grać w frisbee', en: 'play frisbee', unit: 8 },
       ],
     },
-    // Kolejne zestawy dopisujemy w trakcie roku szkolnego:
-    // { id: 'klasa3-unit1', nazwa: 'Klasa 3 — Unit 1', klasa: 3, slowa: [...] },
+    // Klasa 3 — materiał ze słowniczka obrazkowego (Picture dictionary, s. 92-95),
+    // unity 1-8, po 14 pozycji. Lista zatwierdzona przez matkę 2026-09-06
+    // (docs/slowka-klasa3-do-zatwierdzenia.md).
+    //
+    // ŚWIADOME DECYZJE — NIE COFAJ ICH BEZ PYTANIA:
+    // 1. Unit 0 ("Hello", s. 3-4) POMINIĘTY W CAŁOŚCI — 18 z 23 pozycji to dokładna
+    //    powtórka z `klasa2-powtorka`. Przy okazji znika jedyna realna kolizja
+    //    polskich haseł: `take photos` (kl. 3) vs `take pictures` (kl. 8 z kl. 2),
+    //    oba "robić zdjęcia" — w trybie wpisywania dziecko odpowiadałoby dobrze
+    //    i traciło serce.
+    // 2. `tea` = "podwieczorek", NIE "herbata" — na obrazku brytyjskie afternoon tea
+    //    (patera z ciastkami), czyli posiłek, nie napój.
+    // 3. `dinner` = "kolacja", NIE "obiad" — żeby nie mylił się z `have lunch`
+    //    = "jeść obiad" z klasy 2.
+    //
+    // Cały materiał unitowy jest JEDNYM zestawem, nie ośmioma. Zakres kumulacyjny
+    // `{ do: N }` działa tylko w obrębie jednego zestawu — osiem osobnych zestawów
+    // zabiłoby powtórkę narastającą.
+    {
+      id: 'klasa3',
+      nazwa: 'Klasa 3',
+      klasa: 3,
+      slowa: [
+        // unit 1 — Look at me! (wygląd i uczucia, s. 92)
+        { pl: 'elegancki', en: 'elegant', unit: 1 },
+        { pl: 'niechlujny', en: 'messy', unit: 1 },
+        { pl: 'młody', en: 'young', unit: 1 },
+        { pl: 'starszy', en: 'elderly', unit: 1 },
+        { pl: 'wysoki', en: 'tall', unit: 1 },
+        { pl: 'niski', en: 'short', unit: 1 },
+        { pl: 'szczupły', en: 'thin', unit: 1 },
+        { pl: 'pulchny', en: 'plump', unit: 1 },
+        { pl: 'podekscytowany', en: 'excited', unit: 1 },
+        { pl: 'znudzony', en: 'bored', unit: 1 },
+        { pl: 'odważny', en: 'brave', unit: 1 },
+        { pl: 'przestraszony', en: 'scared', unit: 1 },
+        { pl: 'spokojny', en: 'calm', unit: 1 },
+        { pl: 'zły', en: 'angry', unit: 1 },
+
+        // unit 2 — zdrowie: dolegliwości i leki (s. 92)
+        { pl: 'katar', en: 'runny nose', unit: 2 },
+        { pl: 'kaszel', en: 'cough', unit: 2 },
+        { pl: 'ból głowy', en: 'headache', unit: 2 },
+        { pl: 'ból zęba', en: 'toothache', unit: 2 },
+        { pl: 'zadrapanie', en: 'scratch', unit: 2 },
+        { pl: 'skaleczenie', en: 'cut', unit: 2 },
+        { pl: 'ból brzucha', en: 'stomach ache', unit: 2 },
+        { pl: 'gorączka', en: 'fever', unit: 2 },
+        { pl: 'chusteczki', en: 'tissues', unit: 2 },
+        { pl: 'plaster', en: 'sticking plaster', unit: 2 },
+        { pl: 'bandaż', en: 'bandage', unit: 2 },
+        { pl: 'syrop', en: 'syrup', unit: 2 },
+        { pl: 'termometr', en: 'thermometer', unit: 2 },
+        { pl: 'tabletki', en: 'pills', unit: 2 },
+
+        // unit 3 — technologia i przymiotniki (s. 93)
+        { pl: 'smartfon', en: 'smartphone', unit: 3 },
+        { pl: 'tablet', en: 'tablet', unit: 3 },
+        { pl: 'mikrofon', en: 'microphone', unit: 3 },
+        { pl: 'konsola do gier', en: 'game console', unit: 3 },
+        { pl: 'laptop', en: 'laptop', unit: 3 },
+        { pl: 'smartwatch', en: 'smartwatch', unit: 3 },
+        { pl: 'myszka', en: 'mouse', unit: 3 },
+        { pl: 'klawiatura', en: 'keyboard', unit: 3 },
+        { pl: 'tani', en: 'cheap', unit: 3 },
+        { pl: 'drogi', en: 'expensive', unit: 3 },
+        { pl: 'błyszczący', en: 'shiny', unit: 3 },
+        { pl: 'matowy', en: 'matt', unit: 3 },
+        { pl: 'ciężki', en: 'heavy', unit: 3 },
+        { pl: 'lekki', en: 'light', unit: 3 },
+
+        // unit 4 — jedzenie i posiłki (s. 93)
+        { pl: 'ryż', en: 'rice', unit: 4 },
+        { pl: 'marchewki', en: 'carrots', unit: 4 },
+        { pl: 'jajka', en: 'eggs', unit: 4 },
+        { pl: 'jabłka', en: 'apples', unit: 4 },
+        { pl: 'ziemniaki', en: 'potatoes', unit: 4 },
+        { pl: 'kurczak', en: 'chicken', unit: 4 },
+        { pl: 'krewetki', en: 'shrimps', unit: 4 },
+        { pl: 'mleko', en: 'milk', unit: 4 },
+        { pl: 'przekąska', en: 'snack', unit: 4 },
+        { pl: 'podwieczorek', en: 'tea', unit: 4 },
+        { pl: 'kolacja', en: 'dinner', unit: 4 },
+        { pl: 'zawsze', en: 'always', unit: 4 },
+        { pl: 'czasami', en: 'sometimes', unit: 4 },
+        { pl: 'nigdy', en: 'never', unit: 4 },
+
+        // unit 5 — zawody i czynności zawodowe (s. 94)
+        { pl: 'budowlaniec', en: 'builder', unit: 5 },
+        { pl: 'sprzedawca', en: 'shop assistant', unit: 5 },
+        { pl: 'strażak', en: 'firefighter', unit: 5 },
+        { pl: 'artysta', en: 'artist', unit: 5 },
+        { pl: 'budować domy', en: 'build houses', unit: 5 },
+        { pl: 'sprzedawać jedzenie', en: 'sell food', unit: 5 },
+        { pl: 'pomagać ludziom', en: 'help people', unit: 5 },
+        { pl: 'robić rzeźby', en: 'make sculptures', unit: 5 },
+        { pl: 'kucharz', en: 'chef', unit: 5 },
+        { pl: 'nauczyciel', en: 'teacher', unit: 5 },
+        { pl: 'policjant', en: 'police officer', unit: 5 },
+        { pl: 'gotować posiłki', en: 'cook meals', unit: 5 },
+        { pl: 'uczyć dzieci', en: 'teach children', unit: 5 },
+        { pl: 'łapać przestępców', en: 'catch criminals', unit: 5 },
+
+        // unit 6 — miasto, sklepy, przyimki miejsca (s. 94)
+        { pl: 'poczta', en: 'post office', unit: 6 },
+        { pl: 'remiza strażacka', en: 'fire station', unit: 6 },
+        { pl: 'restauracja', en: 'restaurant', unit: 6 },
+        { pl: 'komisariat policji', en: 'police station', unit: 6 },
+        { pl: 'piekarnia', en: 'bakery', unit: 6 },
+        { pl: 'teatr', en: 'theatre', unit: 6 },
+        { pl: 'dworzec autobusowy', en: 'bus station', unit: 6 },
+        { pl: 'warzywniak', en: "greengrocer's", unit: 6 },
+        { pl: 'ulica', en: 'street', unit: 6 },
+        { pl: 'przejście dla pieszych', en: 'zebra crossing', unit: 6 },
+        { pl: 'światła', en: 'traffic lights', unit: 6 },
+        { pl: 'obok', en: 'next to', unit: 6 },
+        { pl: 'pomiędzy', en: 'between', unit: 6 },
+        { pl: 'naprzeciwko', en: 'opposite', unit: 6 },
+
+        // unit 7 — sport i sprzęt sportowy (s. 95)
+        { pl: 'uprawiać gimnastykę', en: 'do gymnastics', unit: 7 },
+        { pl: 'grać w koszykówkę', en: 'play basketball', unit: 7 },
+        { pl: 'jeździć na łyżwach', en: 'skate', unit: 7 },
+        { pl: 'jeździć na nartach', en: 'ski', unit: 7 },
+        { pl: 'jeździć na rowerze', en: 'cycle', unit: 7 },
+        { pl: 'grać w siatkówkę', en: 'play volleyball', unit: 7 },
+        { pl: 'grać w tenisa', en: 'play tennis', unit: 7 },
+        { pl: 'jeździć konno', en: 'ride a horse', unit: 7 },
+        { pl: 'łyżwy', en: 'ice skates', unit: 7 },
+        { pl: 'narty', en: 'skis', unit: 7 },
+        { pl: 'gogle', en: 'goggles', unit: 7 },
+        { pl: 'wstążka gimnastyczna', en: 'ribbon', unit: 7 },
+        { pl: 'rakieta', en: 'racket', unit: 7 },
+        { pl: 'kask', en: 'helmet', unit: 7 },
+
+        // unit 8 — przyroda i wypoczynek (s. 95)
+        { pl: 'wzgórza', en: 'hills', unit: 8 },
+        { pl: 'strumień', en: 'stream', unit: 8 },
+        { pl: 'staw', en: 'pond', unit: 8 },
+        { pl: 'morze', en: 'sea', unit: 8 },
+        { pl: 'wędrować', en: 'hike', unit: 8 },
+        { pl: 'pływać kajakiem', en: 'kayak', unit: 8 },
+        { pl: 'łowić ryby', en: 'fish', unit: 8 },
+        { pl: 'nurkować', en: 'dive', unit: 8 },
+        { pl: 'łąka', en: 'meadow', unit: 8 },
+        { pl: 'zbierać grzyby', en: 'pick mushrooms', unit: 8 },
+        { pl: 'wieś', en: 'countryside', unit: 8 },
+        { pl: 'urządzić piknik', en: 'have a picnic', unit: 8 },
+        { pl: 'plaża', en: 'beach', unit: 8 },
+        { pl: 'zbierać kamyki', en: 'collect pebbles', unit: 8 },
+      ],
+    },
+    // Sekcje sezonowe z podręcznika klasy 3 (Christmas s. 85, Maths Day s. 87,
+    // Saint Patrick's Day s. 89). OSOBNY zestaw celowo: nie należą do progresji
+    // rozdziałów, więc nie mogą wpadać do rundy "od początku do rozdziału 5".
+    // Numery `unit` są nasze, po jednym na okazję — książka ich nie nadaje.
+    {
+      id: 'klasa3-swieta',
+      nazwa: 'Klasa 3 — święta i okazje',
+      klasa: 3,
+      slowa: [
+        // unit 1 — Christmas (s. 85)
+        { pl: 'upiec świąteczne ciasto', en: 'bake a Christmas cake', unit: 1 },
+        { pl: 'robić ozdoby', en: 'make ornaments', unit: 1 },
+        { pl: 'pakować prezenty', en: 'wrap presents', unit: 1 },
+        { pl: 'wieszać skarpety świąteczne', en: 'hang stockings', unit: 1 },
+        { pl: 'wysyłać kartki świąteczne', en: 'send Christmas cards', unit: 1 },
+        { pl: 'śpiewać kolędy', en: 'sing carols', unit: 1 },
+
+        // unit 2 — Maths Day (s. 87): liczby 30-100
+        { pl: 'trzydzieści', en: 'thirty', unit: 2 },
+        { pl: 'czterdzieści', en: 'forty', unit: 2 },
+        { pl: 'pięćdziesiąt', en: 'fifty', unit: 2 },
+        { pl: 'sześćdziesiąt', en: 'sixty', unit: 2 },
+        { pl: 'siedemdziesiąt', en: 'seventy', unit: 2 },
+        { pl: 'osiemdziesiąt', en: 'eighty', unit: 2 },
+        { pl: 'dziewięćdziesiąt', en: 'ninety', unit: 2 },
+        { pl: 'sto', en: 'one hundred', unit: 2 },
+        { pl: 'dwadzieścia dwa', en: 'twenty-two', unit: 2 },
+        { pl: 'pięćdziesiąt osiem', en: 'fifty-eight', unit: 2 },
+
+        // unit 3 — Saint Patrick's Day (s. 89)
+        { pl: 'irlandzka flaga', en: 'Irish flag', unit: 3 },
+        { pl: 'parada', en: 'parade', unit: 3 },
+        { pl: 'peklowana wołowina z kapustą', en: 'corned beef and cabbage', unit: 3 },
+        { pl: 'leprechaun (irlandzki skrzat)', en: 'Leprechaun', unit: 3 },
+        { pl: 'koniczynka', en: 'shamrock', unit: 3 },
+        { pl: 'garniec złota', en: 'pot of gold', unit: 3 },
+      ],
+    },
   ];
 
   function przetasuj(tab) {

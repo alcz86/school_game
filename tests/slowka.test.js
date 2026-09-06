@@ -25,6 +25,75 @@ test('w obrębie zestawu nie ma duplikatów po stronie angielskiej', () => {
   }
 });
 
+test('istnieje zestaw klasa3 z rozdziałami 1-8, każdy niepusty', () => {
+  const z = s.ZESTAWY.find((x) => x.id === 'klasa3');
+  assert.ok(z, 'brak zestawu klasa3');
+  assert.strictEqual(z.klasa, 3);
+  // Rozdziały 1-8 jako JEDEN zestaw — zakres kumulacyjny { do: N } działa tylko
+  // w obrębie zestawu. Rozbicie na osiem zestawów zabiłoby powtórkę narastającą.
+  assert.deepStrictEqual(s.rozdzialy('klasa3'), [1, 2, 3, 4, 5, 6, 7, 8]);
+  for (let u = 1; u <= 8; u++) {
+    const ile = z.slowa.filter((w) => w.unit === u).length;
+    assert.ok(ile > 0, `rozdział ${u} zestawu klasa3 jest pusty`);
+  }
+});
+
+test('istnieje osobny zestaw klasa3-swieta poza progresją rozdziałów', () => {
+  const z = s.ZESTAWY.find((x) => x.id === 'klasa3-swieta');
+  assert.ok(z, 'brak zestawu klasa3-swieta');
+  assert.strictEqual(z.klasa, 3);
+  assert.ok(z.slowa.length > 0, 'zestaw świąteczny jest pusty');
+  // Musi być OSOBNY od `klasa3` — inaczej wpadłby do rundy "od początku do rozdziału 5",
+  // do której nie należy (Christmas / Maths Day / St Patrick's nie są rozdziałami).
+  const klasa3 = s.ZESTAWY.find((x) => x.id === 'klasa3');
+  assert.ok(!klasa3.slowa.some((w) => z.slowa.some((y) => y.en === w.en)),
+    'materiał świąteczny nie może dublować się z rozdziałami klasy 3');
+});
+
+test('w trybie wpisywania żadne polskie hasło nie ma dwóch poprawnych odpowiedzi', () => {
+  // Tryb wpisywania (klasa >= 3) porównuje wpisany tekst z JEDNĄ odpowiedzią.
+  // Dwa słowa o identycznym `pl` znaczą pytanie z dwiema poprawnymi odpowiedziami:
+  // dziecko odpowiada dobrze, gra uznaje za błąd i zabiera serce.
+  // Sprawdzamy zarówno wewnątrz zestawu, jak i MIĘDZY zestawami klasy 3+.
+  const widziane = new Map();
+  for (const z of s.ZESTAWY.filter((x) => x.klasa >= 3)) {
+    for (const w of z.slowa) {
+      const klucz = w.pl.trim().toLowerCase();
+      const poprzednie = widziane.get(klucz);
+      assert.ok(
+        !poprzednie,
+        `kolizja polskiego hasła "${w.pl}": ${poprzednie && poprzednie.id}:${poprzednie && poprzednie.en}` +
+          ` vs ${z.id}:${w.en}`,
+      );
+      widziane.set(klucz, { id: z.id, en: w.en });
+    }
+  }
+});
+
+test('zestawy klasy 3 mają komplet pól pl / en / całkowity unit', () => {
+  const zestawy = s.ZESTAWY.filter((z) => z.klasa >= 3);
+  assert.ok(zestawy.length >= 2, 'oczekiwano co najmniej dwóch zestawów klasy 3');
+  for (const z of zestawy) {
+    for (const w of z.slowa) {
+      assert.ok(w.pl && w.pl.trim(), `puste pl przy "${w.en}" w ${z.id}`);
+      assert.ok(w.en && w.en.trim(), `puste en przy "${w.pl}" w ${z.id}`);
+      assert.ok(Number.isInteger(w.unit) && w.unit >= 0, `zły unit przy "${w.en}" w ${z.id}`);
+    }
+  }
+});
+
+test('generator klasy 3 działa w trybie wpisywania i respektuje zakres', () => {
+  const zestaw = s.ZESTAWY.find((z) => z.id === 'klasa3');
+  const unitPoEn = new Map(zestaw.slowa.map((w) => [w.en, w.unit]));
+  for (const p of s.generuj('klasa3', 60, 'wpisywanie', null, { do: 3 })) {
+    assert.strictEqual(p.warianty, null, 'tryb wpisywania nie podaje wariantów');
+    assert.ok(unitPoEn.get(p.odpowiedz) <= 3, `"${p.odpowiedz}" spoza zakresu do:3`);
+  }
+  for (const p of s.generuj('klasa3', 60, 'wpisywanie', null, { tylko: 8 })) {
+    assert.strictEqual(unitPoEn.get(p.odpowiedz), 8, `"${p.odpowiedz}" spoza rozdziału 8`);
+  }
+});
+
 test('tryb wybor daje 4 różne warianty zawierające poprawną odpowiedź', () => {
   for (const p of s.generuj('klasa2-powtorka', 20, 'wybor')) {
     assert.strictEqual(p.warianty.length, 4);
