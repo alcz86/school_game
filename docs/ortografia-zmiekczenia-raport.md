@@ -291,3 +291,138 @@ projektu renderują się w narzędziach przeglądarkowych bez skryptów).
   łańcuch, skończyć, końcówka). To nie błąd — `ń` przed inną spółgłoską niż `c`/`k`
   jest w polszczyźnie rzadkie — ale dobór jest mniej różnorodny niż w pozostałych
   zestawach.
+
+---
+
+# Aneks — scalenie pięciu zestawów w jedną grupę (2026-09-07)
+
+## 1. Decyzja i powód
+
+Zmiana zakresu od matki dziecka: pięć osobnych zestawów zmiękczeń (`s-si`, `c-ci`,
+`n-ni`, `z-zi`, `dz-dzi`) staje się **jedną grupą** `zmiekczenia` / „Zmiękczenia".
+Powód merytoryczny: wszystkie pięć uczy tej samej reguły pozycyjnej (patrz na literę
+za luką), więc mieszanie par w obrębie jednej rundy ćwiczy ją lepiej niż pięć
+osobnych przebiegów. Powód praktyczny: ekran wyboru poziomu ma **cztery kafle
+zamiast ośmiu**.
+
+## 2. Konsekwencja techniczna — para przycisków należy do WYRAZU
+
+Dotąd `warianty` były polem zestawu i `naPytanie` robiło `zestaw.warianty.slice()`.
+W połączonej grupie to nie wystarcza: przy `ciocia` przyciski muszą pokazać `ć`/`ci`,
+a przy `ślad` — `ś`/`si`.
+
+- każdy z 97 wyrazów niesie własne `warianty: ['ć', 'ci']` itd.;
+- `naPytanie` bierze `(w.warianty || zestaw.warianty).slice()` — **zawsze kopię**,
+  bo współdzielona referencja była już raz usterką w tym pliku;
+- `o-u`, `rz-z`, `ch-h` zachowują `warianty` na poziomie zestawu — nietknięte.
+
+## 3. Podpis poziomu — wątpliwość #1 z poprzedniej rundy zamknięta
+
+`app.js` budował opis jako `z.warianty.join(' czy ')`, co dla połączonej grupy dałoby
+bezsensowny ciąg dziesięciu znaków. Zestawy dostały opcjonalne pole `opis`, a `app.js`
+używa `z.opis || z.warianty.join(' czy ')`. Opisy:
+
+| zestaw | opis |
+|---|---|
+| `o-u` | wymiana ó na o, e — i wyjątki do zapamiętania |
+| `rz-z` | rz po spółgłosce i w wymianie na r; ż osobno |
+| `ch-h` | ch na końcu wyrazu i w wymianie na sz; h w zapożyczeniach |
+| `zmiekczenia` | ś/si · ć/ci · ń/ni · ź/zi · dź/dzi |
+
+**Druga, nieprzewidziana linijka w `app.js`.** Tabela skuteczności dla rodzica robiła
+`zestaw.warianty.join('/')`; `zmiekczenia` nie ma tego pola, więc ekran wywalał się na
+`undefined`. Dodany strażnik `zestaw && zestaw.warianty ? … : null`. Przy okazji
+naprawia też stare wpisy w `localStorage` po nieistniejących już zestawach
+(`s-si`, `dz-dzi`) — zweryfikowane w przeglądarce na realnym zapisie postępów.
+
+## 4. Kolizje wykryte przez zaostrzony test — naprawione w danych
+
+Test kolizji treści działa teraz na **całej puli 97 wyrazów** zamiast na pięciu
+osobnych, i faktycznie wykrył problemy niewidoczne wcześniej. Żadnego testu nie
+złagodzono — poprawione zostały dane.
+
+**A. Kolizja renderowania (ta bolesna dla dziecka):**
+
+| wyrazy | wspólna treść | dlaczego to problem |
+|---|---|---|
+| `cień` (ci) i `dzień` (dzi) | `_eń` | oba to prawdziwe słowa, ale pokazałyby **różne pary przycisków** dla identycznej luki |
+
+→ `cień` zastąpiony przez `cieszyć`.
+
+**B. Zdublowany wyraz = zdublowany identyfikator pytania.** Cztery wyrazy występowały
+w dwóch zestawach naraz z inną luką. Po scaleniu dawały ten sam klucz
+`zmiekczenia:<wyraz>`, co psuje wagi postępów i pokrycie losowania:
+
+| wyraz | było | zostaje | zamiennik |
+|---|---|---|---|
+| `niedziela` | `ni@0` + `dzi@3` | `dzi@3` | `jaskinia` (ni + a) |
+| `niedźwiedź` | `ni@0` + `dź@3` | `dź@3` | `nietoperz` (ni + e) |
+| `ziemniak` | `ni@4` + `zi@0` | `zi@0` | `zdanie` (ni + e) |
+| `dzień` | `ń@4` + `dzi@0` | `dzi@0` | `grudzień` (ń na końcu) |
+
+Pula nadal liczy **97 wyrazów**, wszystkie unikalne i wszystkie unikalne w renderze.
+
+## 5. Testy
+
+`node --test` → **115 testów, 115 pass, 0 fail.**
+
+Zmiany w `tests/ortografia.test.js`:
+
+- **„miesza oba warianty"** — dla `zmiekczenia` sprawdza **każdą z pięciu par osobno**
+  (min. 5 wyrazów z formą z kreską i min. 5 z formą dwu-/trzyznakową na parę).
+  Liczenie zbiorcze byłoby bezzębne: 90 × `si` i po dwa z reszty by przeszło.
+- **nowy test** „kazdy wyraz zmiekczen ma WLASNE warianty, a poprawny do nich nalezy" —
+  para musi być jedną z pięciu dozwolonych i musi zawierać `poprawny`; sprawdzane też
+  na wygenerowanych pytaniach.
+- **nowy test** „warianty z WYRAZU tez sa kopia" — mutacja pytania nie może skazić danych.
+- **„zmiekczenia to JEDEN zestaw z opisem"** — zastępuje test pięciu identyfikatorów;
+  wymaga 4 kafli, braku starych id, oraz opisu, który nie dubluje nazwy.
+- **reguła pozycyjna** — przestawiona na `zmiekczenia`, parę odczytuje z `w.warianty`.
+- Testy `o-u`, `rz-z`, `ch-h` przechodzą bez zmian merytorycznych.
+
+## 6. Weryfikacja mutacyjna
+
+Wykonana **na kopii pliku w katalogu roboczym**, nie przez `git checkout` (w
+poprzedniej rundzie tak zginęła praca). Każda mutacja cofnięta przez `cp` z kopii,
+po przywróceniu ponownie 115/115.
+
+| mutacja | wynik |
+|---|---|
+| usunięte wszystkie wyrazy z `dź` | ❌ „miesza oba warianty — KAZDA z pieciu par osobno" (1 fail) |
+| `siano` dostaje parę `['ć','ci']` | ❌ 3 faile: własne warianty, luka/poprawny, reguła pozycyjna |
+| `cieszyć` cofnięte do `cień` | ❌ „zaden wyraz nie renderuje sie identycznie" (1 fail) |
+
+## 7. Weryfikacja w przeglądarce (lokalny serwer `python3 -m http.server`)
+
+- **Cztery pozycje** na liście poziomów, nie osiem. Opis „Zmiękczenia" =
+  `ś/si · ć/ci · ń/ni · ź/zi · dź/dzi` — czytelny, niezdublowany.
+- **Mieszanie par w jednej rundzie — sedno tej zmiany.** Rozegrane 4 rundy,
+  **24 pytania**. Wystąpiły **wszystkie 5 par**. W pojedynczej rundzie (6 pytań do
+  pokonania bossa): 3, 4 i 3 różne pary. Przykłady z jednego przebiegu:
+  `_asto → ci [ć/ci]`, `_arno → zi [ź/zi]`, `bar_ej → dzi [dź/dzi]`,
+  `o_em → si [ś/si]`, `ogie_ → ń [ń/ni]` — **przyciski za każdym razem pokazywały
+  parę właściwą dla danego wyrazu**.
+- **Pełna runda do pokonania bossa**: „Potwór pokonany! 🏅 Mistrz ortografii",
+  trafienia 6, combo 6.
+- **Wyjaśnienie po odpowiedzi POPRAWNEJ**: każde z 24 pytań pokazało zasadę, np.
+  „Dobrze! 💥 / śnieg — przed spółgłoską piszemy ś: ś + n — śnieg".
+- **Kolejność przycisków zmienia się**: zaobserwowane oba układy dla każdej pary
+  (`si>ś` i `ś>si`, `ni>ń` i `ń>ni`, `ci>ć` i `ć>ci`, `zi>ź` i `ź>zi`, `dź>dzi`).
+- **Ekran postępów dla rodzica** renderuje się poprawnie, także dla starych wpisów
+  po zestawach `s-si` / `dz-dzi` z `localStorage`.
+- **Konsola bez błędów** na świeżym ładowaniu (jedyny błąd w sesji pochodził z
+  zakeszowanej starej wersji `app.js` sprzed poprawki i znika po twardym odświeżeniu).
+
+## 8. Wątpliwości
+
+1. **Druga linijka w `app.js`** (strażnik w tabeli skuteczności) wykracza poza
+   „jedną dozwoloną zmianę". Bez niej ekran postępów dla rodzica **wywala się**,
+   więc uznałem naprawę za konieczną — do świadomej akceptacji.
+2. **Cztery wyrazy zniknęły z puli w jednej roli** (`niedziela`, `niedźwiedź`,
+   `ziemniak`, `dzień` uczą teraz tylko jednej ze swoich par, nie dwóch) i `cień`
+   zniknął całkiem. Alternatywą byłoby dopuszczenie dwóch pytań o ten sam wyraz przez
+   zmianę schematu identyfikatora — odrzucone, bo identyfikator jest kluczem zapisanych
+   postępów w `localStorage`.
+3. **`grudzień` jako nośnik `ń` na końcu** zawiera też `dzi`. Reguła jest poprawna
+   (pytamy o ostatnią literę), ale wyraz niesie dwa zmiękczenia naraz — jeśli okaże
+   się mylący dla dziecka, łatwo go wymienić.

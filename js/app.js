@@ -40,7 +40,7 @@
 
   function poziomyDla(tryb) {
     if (tryb === 'matematyka') return matematyka.POZIOMY.map((p) => ({ id: p.id, nazwa: p.nazwa, opis: p.opis }));
-    if (tryb === 'ortografia') return ortografia.ZESTAWY.map((z) => ({ id: z.id, nazwa: z.nazwa, opis: z.warianty.join(' czy ') }));
+    if (tryb === 'ortografia') return ortografia.ZESTAWY.map((z) => ({ id: z.id, nazwa: z.nazwa, opis: z.opis || z.warianty.join(' czy ') }));
     if (tryb === 'angielski')  return slowka.ZESTAWY.map((z) => ({ id: z.id, nazwa: z.nazwa, opis: z.slowa.length + ' słówek' }));
     return [];
   }
@@ -424,7 +424,9 @@
     const reszta = surowy.indexOf(prefiks) === 0 ? surowy.slice(prefiks.length) : surowy;
     if (tryb === 'ortografia') {
       const zestaw = ortografia.ZESTAWY.find((z) => z.id === idZestawu);
-      const para = zestaw ? zestaw.warianty.join('/') : null;
+      // `zmiekczenia` nie ma pary na poziomie zestawu (każdy wyraz ma własną),
+      // więc bez tego strażnika tabela skuteczności wywalałaby się na undefined.
+      const para = zestaw && zestaw.warianty ? zestaw.warianty.join('/') : null;
       return para ? reszta + ' (' + para + ')' : reszta;
     }
     if (tryb === 'angielski') {

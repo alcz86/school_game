@@ -2,6 +2,20 @@ const test = require('node:test');
 const assert = require('node:assert');
 const o = require('../dane/ortografia.js');
 
+// Para przyciskow moze byc wlasnoscia WYRAZU (zestaw `zmiekczenia` miesza piec par
+// w jednej rundzie) albo — dla o-u / rz-z / ch-h — calego zestawu.
+function wariantyDla(z, w) { return w.warianty || z.warianty; }
+
+// Pieciu parom zmiekczen odpowiada jedna regula pozycyjna. Mapa sluzy i testowi
+// pokrycia par, i testowi reguly.
+const PARY_ZMIEKCZEN = [
+  { dwuznak: 'si',  kreska: 'ś' },
+  { dwuznak: 'ci',  kreska: 'ć' },
+  { dwuznak: 'ni',  kreska: 'ń' },
+  { dwuznak: 'zi',  kreska: 'ź' },
+  { dwuznak: 'dzi', kreska: 'dź' },
+];
+
 test('są zestawy ó/u, rz/ż, ch/h', () => {
   const ids = o.ZESTAWY.map((z) => z.id);
   for (const wymagany of ['o-u', 'rz-z', 'ch-h']) {
@@ -28,7 +42,7 @@ test('luka wskazuje na znak, który faktycznie jest poprawną odpowiedzią', () 
     for (const w of z.wyrazy) {
       const znak = w.wyraz.substr(w.luka, w.poprawny.length);
       assert.strictEqual(znak, w.poprawny, `luka nie trafia w "${w.poprawny}" w "${w.wyraz}"`);
-      assert.ok(z.warianty.includes(w.poprawny), `"${w.poprawny}" spoza wariantów ${z.id}`);
+      assert.ok(wariantyDla(z, w).includes(w.poprawny), `"${w.poprawny}" spoza wariantów ${z.id}`);
     }
   }
 });
@@ -49,11 +63,24 @@ test('generuj nie powtarza wyrazu, dopóki starcza materiału', () => {
   assert.strictEqual(unikalne.size, 10);
 });
 
-test('każdy zestaw miesza oba warianty', () => {
+test('każdy zestaw miesza oba warianty — w zmiekczeniach KAZDA z pieciu par osobno', () => {
+  // W polaczonej grupie liczenie zbiorcze byloby bezzebne: 90 wyrazow z `si` i po
+  // dwa z reszty przeszloby. Kazda para musi sama w sobie miec material na obie
+  // strony reguly, inaczej dana para uczy klikania w jedna strone.
   for (const z of o.ZESTAWY) {
-    for (const wariant of z.warianty) {
-      const ile = z.wyrazy.filter((w) => w.poprawny === wariant).length;
-      assert.ok(ile >= 5, `${z.id} ma tylko ${ile} wyrazów z "${wariant}"`);
+    if (z.warianty) {
+      for (const wariant of z.warianty) {
+        const ile = z.wyrazy.filter((w) => w.poprawny === wariant).length;
+        assert.ok(ile >= 5, `${z.id} ma tylko ${ile} wyrazów z "${wariant}"`);
+      }
+      continue;
+    }
+    for (const para of PARY_ZMIEKCZEN) {
+      for (const wariant of [para.kreska, para.dwuznak]) {
+        const ile = z.wyrazy.filter((w) => w.poprawny === wariant).length;
+        assert.ok(ile >= 5,
+          `${z.id}: para ${para.kreska}/${para.dwuznak} ma tylko ${ile} wyrazów z "${wariant}" (min. 5)`);
+      }
     }
   }
 });
@@ -76,6 +103,10 @@ test('treść ma dokładnie jeden podkreślnik, także dla dwuznaków', () => {
 });
 
 test('zaden wyraz nie renderuje sie identycznie jak inny w tym samym zestawie', () => {
+  // Po scaleniu pieciu zestawow zmiekczen w jeden ten test dziala na CALEJ puli 97
+  // wyrazow, wiec lapie takze kolizje MIEDZY parami. Przy scaleniu wykryl `cień`
+  // (ci) i `dzień` (dzi) — oba renderowaly sie jako "_eń", a przyciski pokazywalyby
+  // rozne pary. `cień` zastapiony przez `cieszyć`.
   // Bez tego dziecko dostaje luke, ktorej NIE DA SIE rozstrzygnac: `morze` i `może`
   // renderowaly sie oba jako "mo_e", wiec w polowie przypadkow tracilo serce mimo
   // poprawnego rozumowania, a wyjasnienie dotyczylo wyrazu, o ktory nie bylo pytane.
@@ -101,6 +132,33 @@ test('warianty w pytaniu to kopia, nie referencja do danych źródłowych', () =
   assert.deepStrictEqual(zestaw.warianty, przed, 'mutacja pytania skaziła ZESTAWY');
 });
 
+test('warianty z WYRAZU tez sa kopia, nie referencja', () => {
+  const z = o.ZESTAWY.find((x) => x.id === 'zmiekczenia');
+  const przed = z.wyrazy.map((w) => w.warianty.slice());
+  for (const p of o.generuj('zmiekczenia', 30, {})) p.warianty.push('SKAZA');
+  assert.deepStrictEqual(z.wyrazy.map((w) => w.warianty), przed, 'mutacja pytania skaziła dane wyrazu');
+});
+
+test('kazdy wyraz zmiekczen ma WLASNE warianty, a poprawny do nich nalezy', () => {
+  // Bez tego dalo by sie dopisac wyraz, ktory pokaze niewlasciwa pare przyciskow —
+  // dziecko dostaloby pytanie, na ktore nie da sie odpowiedziec.
+  const z = o.ZESTAWY.find((x) => x.id === 'zmiekczenia');
+  const DOZWOLONE = PARY_ZMIEKCZEN.map((p) => [p.kreska, p.dwuznak].join('|'));
+  for (const w of z.wyrazy) {
+    assert.ok(Array.isArray(w.warianty) && w.warianty.length === 2,
+      `"${w.wyraz}" nie ma wlasnej pary wariantow`);
+    assert.ok(DOZWOLONE.includes(w.warianty.join('|')),
+      `"${w.wyraz}" ma pare [${w.warianty}] spoza piatki zmiekczen`);
+    assert.ok(w.warianty.includes(w.poprawny),
+      `"${w.wyraz}": poprawny "${w.poprawny}" nie nalezy do pary [${w.warianty}]`);
+  }
+  // to samo w wygenerowanym pytaniu — przyciski musza pasowac do odpowiedzi
+  for (const p of o.generuj('zmiekczenia', z.wyrazy.length, {})) {
+    assert.ok(p.warianty.includes(p.odpowiedz),
+      `pytanie "${p.tresc}" pokazuje [${p.warianty}], a odpowiedz to "${p.odpowiedz}"`);
+  }
+});
+
 test('losowanie obejmuje CALY zestaw, nie tylko poczatek listy', () => {
   // Regresja: `pula.slice(0, ile)` przed tasowaniem powodowalo, ze gra pokazywala
   // stale pierwsze `ile` wyrazow. A dane sa pogrupowane wariantami, wiec przez cala
@@ -117,6 +175,7 @@ test('losowanie obejmuje CALY zestaw, nie tylko poczatek listy', () => {
 
 test('obie odpowiedzi pojawiaja sie w rundzie — zaden wariant nie dominuje', () => {
   for (const z of o.ZESTAWY) {
+    if (!z.warianty) continue;   // zmiekczenia: rozklad par pilnuje osobny test wyzej
     const licznik = {};
     for (const w of z.warianty) licznik[w] = 0;
     for (let i = 0; i < 200; i++) {
@@ -159,7 +218,7 @@ test('zly wariant nie tworzy innego czestego polskiego slowa', () => {
   for (const z of o.ZESTAWY) {
     for (const w of z.wyrazy) {
       if (DOZWOLONE_WYJATKI.includes(w.wyraz)) continue;
-      for (const zly of z.warianty) {
+      for (const zly of wariantyDla(z, w)) {
         if (zly === w.poprawny) continue;
         const forma = w.wyraz.slice(0, w.luka) + zly + w.wyraz.slice(w.luka + w.poprawny.length);
         assert.ok(!ZAKAZANE.includes(forma),
@@ -169,10 +228,16 @@ test('zly wariant nie tworzy innego czestego polskiego slowa', () => {
   }
 });
 
-test('sa zestawy zmiekczen s-si, c-ci, n-ni, z-zi, dz-dzi', () => {
+test('zmiekczenia to JEDEN zestaw z opisem, nie piec kafli', () => {
   const ids = o.ZESTAWY.map((z) => z.id);
-  for (const wymagany of ['s-si', 'c-ci', 'n-ni', 'z-zi', 'dz-dzi']) {
-    assert.ok(ids.includes(wymagany), `brak zestawu ${wymagany}`);
+  assert.ok(ids.includes('zmiekczenia'), 'brak zestawu zmiekczenia');
+  for (const stary of ['s-si', 'c-ci', 'n-ni', 'z-zi', 'dz-dzi']) {
+    assert.ok(!ids.includes(stary), `zestaw ${stary} mial zostac scalony w zmiekczenia`);
+  }
+  assert.strictEqual(o.ZESTAWY.length, 4, 'ekran wyboru poziomu ma miec 4 kafle');
+  for (const z of o.ZESTAWY) {
+    assert.ok(z.opis && z.opis.length > 5, `${z.id} nie ma opisu`);
+    assert.notStrictEqual(z.opis, z.nazwa, `${z.id}: opis dubluje nazwe`);
   }
 });
 
@@ -188,18 +253,11 @@ test('zmiekczenia: zasada pozycyjna — dwuznak przed samogloska, kreska przed s
   // Ten test czyta litere ZARAZ ZA luka i wymaga, zeby zgadzala sie z wariantem.
   const SAMOGLOSKI = new Set(['a', 'ą', 'e', 'ę', 'o', 'ó', 'u']);
   // celowo BEZ `i` i BEZ `y` — polaczenia `sii` / `siy` w polszczyznie nie wystepuja
-  const ZMIEKCZENIA = {
-    's-si':   { dwuznak: 'si',  kreska: 'ś' },
-    'c-ci':   { dwuznak: 'ci',  kreska: 'ć' },
-    'n-ni':   { dwuznak: 'ni',  kreska: 'ń' },
-    'z-zi':   { dwuznak: 'zi',  kreska: 'ź' },
-    'dz-dzi': { dwuznak: 'dzi', kreska: 'dź' },
-  };
-
   for (const z of o.ZESTAWY) {
-    const regula = ZMIEKCZENIA[z.id];
-    if (!regula) continue;
+    if (z.id !== 'zmiekczenia') continue;
     for (const w of z.wyrazy) {
+      const regula = PARY_ZMIEKCZEN.find((p) => w.warianty && w.warianty.includes(p.kreska));
+      assert.ok(regula, `${z.id}: "${w.wyraz}" ma pare spoza piatki zmiekczen`);
       const po = w.wyraz.slice(w.luka + w.poprawny.length);
       const nastepny = po.charAt(0);
       const opisPo = nastepny === '' ? 'koniec wyrazu' : `"${nastepny}"`;
