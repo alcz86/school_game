@@ -169,6 +169,61 @@ test('zly wariant nie tworzy innego czestego polskiego slowa', () => {
   }
 });
 
+test('sa zestawy zmiekczen s-si, c-ci, n-ni, z-zi, dz-dzi', () => {
+  const ids = o.ZESTAWY.map((z) => z.id);
+  for (const wymagany of ['s-si', 'c-ci', 'n-ni', 'z-zi', 'dz-dzi']) {
+    assert.ok(ids.includes(wymagany), `brak zestawu ${wymagany}`);
+  }
+});
+
+test('zmiekczenia: zasada pozycyjna — dwuznak przed samogloska, kreska przed spolgloska lub na koncu', () => {
+  // SIATKA BEZPIECZENSTWA na pulapke pozornych zmiekczen.
+  //
+  // W wyrazach `zima`, `nic`, `cisza`, `sila`, `dzik`, `godzina`, `chodzic` litera
+  // `i` jest PELNA SAMOGLOSKA, nie znakiem miekkosci. Nie maja konkurencyjnej
+  // pisowni (`zma`, `nc`, `csza` nie istnieja), wiec niczego nie ucza — dziecko
+  // nigdy sie na nich nie pomyli. Wpuszczone do zestawu rozbijaja regule, ktorej
+  // te poziomy maja uczyc: po `zi` stoi w nich SPOLGLOSKA.
+  //
+  // Ten test czyta litere ZARAZ ZA luka i wymaga, zeby zgadzala sie z wariantem.
+  const SAMOGLOSKI = new Set(['a', 'ą', 'e', 'ę', 'o', 'ó', 'u']);
+  // celowo BEZ `i` i BEZ `y` — polaczenia `sii` / `siy` w polszczyznie nie wystepuja
+  const ZMIEKCZENIA = {
+    's-si':   { dwuznak: 'si',  kreska: 'ś' },
+    'c-ci':   { dwuznak: 'ci',  kreska: 'ć' },
+    'n-ni':   { dwuznak: 'ni',  kreska: 'ń' },
+    'z-zi':   { dwuznak: 'zi',  kreska: 'ź' },
+    'dz-dzi': { dwuznak: 'dzi', kreska: 'dź' },
+  };
+
+  for (const z of o.ZESTAWY) {
+    const regula = ZMIEKCZENIA[z.id];
+    if (!regula) continue;
+    for (const w of z.wyrazy) {
+      const po = w.wyraz.slice(w.luka + w.poprawny.length);
+      const nastepny = po.charAt(0);
+      const opisPo = nastepny === '' ? 'koniec wyrazu' : `"${nastepny}"`;
+
+      if (w.poprawny === regula.dwuznak) {
+        assert.ok(
+          SAMOGLOSKI.has(nastepny),
+          `${z.id}: "${w.wyraz}" ma "${regula.dwuznak}", wiec po luce musi stac samogloska ` +
+          `(a ą e ę o ó u), a stoi ${opisPo}. Czy to na pewno zmiekczenie, a nie ` +
+          `pozorne (jak "zima", gdzie "i" jest pelna samogloska)?`
+        );
+      } else if (w.poprawny === regula.kreska) {
+        assert.ok(
+          nastepny === '' || !SAMOGLOSKI.has(nastepny),
+          `${z.id}: "${w.wyraz}" ma "${regula.kreska}", wiec po luce musi stac spolgloska ` +
+          `albo koniec wyrazu, a stoi samogloska ${opisPo} — tam pisze sie "${regula.dwuznak}".`
+        );
+      } else {
+        assert.fail(`${z.id}: "${w.wyraz}" ma poprawny "${w.poprawny}" spoza pary zmiekczen`);
+      }
+    }
+  }
+});
+
 test('generuj dla nieznanego zestawu zwraca pustą tablicę', () => {
   assert.deepStrictEqual(o.generuj('nie-ma-takiego', 5), []);
 });

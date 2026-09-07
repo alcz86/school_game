@@ -89,6 +89,159 @@
         { wyraz: 'bohater',  luka: 2, poprawny: 'h',  zasada: 'h trzeba zapamiętać — bohater, bohaterski' },
       ],
     },
+    // ------------------------------------------------------------------
+    // ZMIĘKCZENIA — zasada POZYCYJNA, nie pamięciowa.
+    //
+    // Dziecko nie uczy się listy wyrazów, tylko patrzy na literę ZARAZ ZA luką:
+    //   • samogłoska (a ą e ę o ó u)  → forma dwuznakowa: si / ci / ni / zi / dzi
+    //   • spółgłoska albo koniec wyrazu → forma z kreską: ś / ć / ń / ź / dź
+    //
+    // PUŁAPKA (test `zmiękczenia: zasada pozycyjna` pilnuje jej automatycznie):
+    // wyrazy typu `zima`, `nic`, `cisza`, `siła`, `dzik`, `godzina`, `chodzić`
+    // wyglądają jak zmiękczenia, ale `i` jest w nich PEŁNĄ SAMOGŁOSKĄ, nie znakiem
+    // miękkości. Nie mają konkurencyjnej pisowni (`źma`, `ńc`, `ćsza` nie istnieją),
+    // więc niczego nie uczą — a przy okazji łamią zasadę pozycyjną, bo po `zi`
+    // stoi w nich spółgłoska. NIE DOPISYWAĆ TAKICH WYRAZÓW.
+    //
+    // Druga pułapka: `ś`/`ć`/`ń`/`ź`/`dź` na końcu wyrazu bardzo często zamienia się
+    // przy złym wariancie w prawdziwą formę liczby mnogiej — `gęś→gęsi`, `koń→koni`,
+    // `liść→liści`, `chodź→chodzi`, `śledź→śledzi`, `gwóźdź→gwóździ`, `nić→nici`.
+    // Te wyrazy są świadomie odrzucone: dziecko odpowiadałoby sensownie i traciło
+    // serce. Zostawione są tylko takie zakończenia, gdzie zły wariant nie jest
+    // żadnym polskim słowem (`być→byci`, `weź→wezi`, `idź→idzi`).
+    // ------------------------------------------------------------------
+    {
+      id: 's-si',
+      nazwa: 'ś czy si',
+      warianty: ['ś', 'si'],
+      wyrazy: [
+        { wyraz: 'siostra',   luka: 0, poprawny: 'si', zasada: 'przed samogłoską piszemy si: si + o — siostra' },
+        { wyraz: 'siano',     luka: 0, poprawny: 'si', zasada: 'przed samogłoską piszemy si: si + a — siano' },
+        { wyraz: 'siedem',    luka: 0, poprawny: 'si', zasada: 'przed samogłoską piszemy si: si + e — siedem' },
+        { wyraz: 'siatka',    luka: 0, poprawny: 'si', zasada: 'przed samogłoską piszemy si: si + a — siatka' },
+        { wyraz: 'sierpień',  luka: 0, poprawny: 'si', zasada: 'przed samogłoską piszemy si: si + e — sierpień' },
+        { wyraz: 'osiem',     luka: 1, poprawny: 'si', zasada: 'przed samogłoską piszemy si: si + e — osiem' },
+        { wyraz: 'jesień',    luka: 2, poprawny: 'si', zasada: 'przed samogłoską piszemy si: si + e — jesień' },
+        { wyraz: 'prosię',    luka: 3, poprawny: 'si', zasada: 'przed samogłoską piszemy si: si + ę — prosię' },
+        { wyraz: 'gąsienica', luka: 2, poprawny: 'si', zasada: 'przed samogłoską piszemy si: si + e — gąsienica' },
+        { wyraz: 'ślad',      luka: 0, poprawny: 'ś',  zasada: 'przed spółgłoską piszemy ś: ś + l — ślad' },
+        { wyraz: 'śnieg',     luka: 0, poprawny: 'ś',  zasada: 'przed spółgłoską piszemy ś: ś + n — śnieg' },
+        { wyraz: 'świeca',    luka: 0, poprawny: 'ś',  zasada: 'przed spółgłoską piszemy ś: ś + w — świeca' },
+        { wyraz: 'świat',     luka: 0, poprawny: 'ś',  zasada: 'przed spółgłoską piszemy ś: ś + w — świat' },
+        { wyraz: 'ślimak',    luka: 0, poprawny: 'ś',  zasada: 'przed spółgłoską piszemy ś: ś + l — ślimak' },
+        { wyraz: 'śmiech',    luka: 0, poprawny: 'ś',  zasada: 'przed spółgłoską piszemy ś: ś + m — śmiech' },
+        { wyraz: 'środa',     luka: 0, poprawny: 'ś',  zasada: 'przed spółgłoską piszemy ś: ś + r — środa' },
+        { wyraz: 'myśl',      luka: 2, poprawny: 'ś',  zasada: 'przed spółgłoską piszemy ś: ś + l — myśl' },
+        { wyraz: 'wiśnia',    luka: 2, poprawny: 'ś',  zasada: 'przed spółgłoską piszemy ś: ś + n — wiśnia' },
+        { wyraz: 'coś',       luka: 2, poprawny: 'ś',  zasada: 'na końcu wyrazu piszemy ś: coś' },
+        { wyraz: 'ktoś',      luka: 3, poprawny: 'ś',  zasada: 'na końcu wyrazu piszemy ś: ktoś' },
+      ],
+    },
+    {
+      id: 'c-ci',
+      nazwa: 'ć czy ci',
+      warianty: ['ć', 'ci'],
+      wyrazy: [
+        { wyraz: 'ciocia',   luka: 0, poprawny: 'ci', zasada: 'przed samogłoską piszemy ci: ci + o — ciocia' },
+        { wyraz: 'ciepło',   luka: 0, poprawny: 'ci', zasada: 'przed samogłoską piszemy ci: ci + e — ciepło' },
+        { wyraz: 'ciasto',   luka: 0, poprawny: 'ci', zasada: 'przed samogłoską piszemy ci: ci + a — ciasto' },
+        { wyraz: 'ciało',    luka: 0, poprawny: 'ci', zasada: 'przed samogłoską piszemy ci: ci + a — ciało' },
+        { wyraz: 'ciemno',   luka: 0, poprawny: 'ci', zasada: 'przed samogłoską piszemy ci: ci + e — ciemno' },
+        { wyraz: 'ciężko',   luka: 0, poprawny: 'ci', zasada: 'przed samogłoską piszemy ci: ci + ę — ciężko' },
+        { wyraz: 'ciekawy',  luka: 0, poprawny: 'ci', zasada: 'przed samogłoską piszemy ci: ci + e — ciekawy' },
+        { wyraz: 'cień',     luka: 0, poprawny: 'ci', zasada: 'przed samogłoską piszemy ci: ci + e — cień' },
+        { wyraz: 'babcia',   luka: 3, poprawny: 'ci', zasada: 'przed samogłoską piszemy ci: ci + a — babcia' },
+        { wyraz: 'kwiecień', luka: 4, poprawny: 'ci', zasada: 'przed samogłoską piszemy ci: ci + e — kwiecień' },
+        { wyraz: 'ćma',      luka: 0, poprawny: 'ć',  zasada: 'przed spółgłoską piszemy ć: ć + m — ćma' },
+        { wyraz: 'ćwiczyć',  luka: 0, poprawny: 'ć',  zasada: 'przed spółgłoską piszemy ć: ć + w — ćwiczyć' },
+        { wyraz: 'być',      luka: 2, poprawny: 'ć',  zasada: 'na końcu wyrazu piszemy ć: być' },
+        { wyraz: 'pić',      luka: 2, poprawny: 'ć',  zasada: 'na końcu wyrazu piszemy ć: pić' },
+        { wyraz: 'jeść',     luka: 3, poprawny: 'ć',  zasada: 'na końcu wyrazu piszemy ć: jeść' },
+        { wyraz: 'grać',     luka: 3, poprawny: 'ć',  zasada: 'na końcu wyrazu piszemy ć: grać' },
+        { wyraz: 'czytać',   luka: 5, poprawny: 'ć',  zasada: 'na końcu wyrazu piszemy ć: czytać' },
+        { wyraz: 'płacić',   luka: 5, poprawny: 'ć',  zasada: 'na końcu wyrazu piszemy ć: płacić' },
+        { wyraz: 'śpiewać',  luka: 6, poprawny: 'ć',  zasada: 'na końcu wyrazu piszemy ć: śpiewać' },
+      ],
+    },
+    {
+      id: 'n-ni',
+      nazwa: 'ń czy ni',
+      warianty: ['ń', 'ni'],
+      wyrazy: [
+        { wyraz: 'niebo',      luka: 0, poprawny: 'ni', zasada: 'przed samogłoską piszemy ni: ni + e — niebo' },
+        { wyraz: 'niebieski',  luka: 0, poprawny: 'ni', zasada: 'przed samogłoską piszemy ni: ni + e — niebieski' },
+        { wyraz: 'niania',     luka: 0, poprawny: 'ni', zasada: 'przed samogłoską piszemy ni: ni + a — niania' },
+        { wyraz: 'niedziela',  luka: 0, poprawny: 'ni', zasada: 'przed samogłoską piszemy ni: ni + e — niedziela' },
+        { wyraz: 'niedźwiedź', luka: 0, poprawny: 'ni', zasada: 'przed samogłoską piszemy ni: ni + e — niedźwiedź' },
+        { wyraz: 'koniec',     luka: 2, poprawny: 'ni', zasada: 'przed samogłoską piszemy ni: ni + e — koniec' },
+        { wyraz: 'konie',      luka: 2, poprawny: 'ni', zasada: 'przed samogłoską piszemy ni: ni + e — konie' },
+        { wyraz: 'ziemniak',   luka: 4, poprawny: 'ni', zasada: 'przed samogłoską piszemy ni: ni + a — ziemniak' },
+        { wyraz: 'kuchnia',    luka: 4, poprawny: 'ni', zasada: 'przed samogłoską piszemy ni: ni + a — kuchnia' },
+        { wyraz: 'śniadanie',  luka: 1, poprawny: 'ni', zasada: 'przed samogłoską piszemy ni: ni + a — śniadanie' },
+        { wyraz: 'pieniądze',  luka: 3, poprawny: 'ni', zasada: 'przed samogłoską piszemy ni: ni + ą — pieniądze' },
+        { wyraz: 'bańka',      luka: 2, poprawny: 'ń',  zasada: 'przed spółgłoską piszemy ń: ń + k — bańka' },
+        { wyraz: 'słońce',     luka: 3, poprawny: 'ń',  zasada: 'przed spółgłoską piszemy ń: ń + c — słońce' },
+        { wyraz: 'tańczyć',    luka: 2, poprawny: 'ń',  zasada: 'przed spółgłoską piszemy ń: ń + c — tańczyć' },
+        { wyraz: 'łańcuch',    luka: 2, poprawny: 'ń',  zasada: 'przed spółgłoską piszemy ń: ń + c — łańcuch' },
+        { wyraz: 'skończyć',   luka: 3, poprawny: 'ń',  zasada: 'przed spółgłoską piszemy ń: ń + c — skończyć' },
+        { wyraz: 'końcówka',   luka: 2, poprawny: 'ń',  zasada: 'przed spółgłoską piszemy ń: ń + c — końcówka' },
+        { wyraz: 'dzień',      luka: 4, poprawny: 'ń',  zasada: 'na końcu wyrazu piszemy ń: dzień' },
+        { wyraz: 'ogień',      luka: 4, poprawny: 'ń',  zasada: 'na końcu wyrazu piszemy ń: ogień' },
+      ],
+    },
+    {
+      id: 'z-zi',
+      nazwa: 'ź czy zi',
+      warianty: ['ź', 'zi'],
+      wyrazy: [
+        { wyraz: 'ziemia',   luka: 0, poprawny: 'zi', zasada: 'przed samogłoską piszemy zi: zi + e — ziemia' },
+        { wyraz: 'zielony',  luka: 0, poprawny: 'zi', zasada: 'przed samogłoską piszemy zi: zi + e — zielony' },
+        { wyraz: 'zieleń',   luka: 0, poprawny: 'zi', zasada: 'przed samogłoską piszemy zi: zi + e — zieleń' },
+        { wyraz: 'ziewać',   luka: 0, poprawny: 'zi', zasada: 'przed samogłoską piszemy zi: zi + e — ziewać' },
+        { wyraz: 'ziarno',   luka: 0, poprawny: 'zi', zasada: 'przed samogłoską piszemy zi: zi + a — ziarno' },
+        { wyraz: 'ziemniak', luka: 0, poprawny: 'zi', zasada: 'przed samogłoską piszemy zi: zi + e — ziemniak' },
+        { wyraz: 'koziołek', luka: 2, poprawny: 'zi', zasada: 'przed samogłoską piszemy zi: zi + o — koziołek' },
+        { wyraz: 'poziomka', luka: 2, poprawny: 'zi', zasada: 'przed samogłoską piszemy zi: zi + o — poziomka' },
+        { wyraz: 'gałęzie',  luka: 4, poprawny: 'zi', zasada: 'przed samogłoską piszemy zi: zi + e — gałęzie' },
+        { wyraz: 'buzia',    luka: 2, poprawny: 'zi', zasada: 'przed samogłoską piszemy zi: zi + a — buzia' },
+        { wyraz: 'źle',      luka: 0, poprawny: 'ź',  zasada: 'przed spółgłoską piszemy ź: ź + l — źle' },
+        { wyraz: 'źrebak',   luka: 0, poprawny: 'ź',  zasada: 'przed spółgłoską piszemy ź: ź + r — źrebak' },
+        { wyraz: 'źródło',   luka: 0, poprawny: 'ź',  zasada: 'przed spółgłoską piszemy ź: ź + r — źródło' },
+        { wyraz: 'późno',    luka: 2, poprawny: 'ź',  zasada: 'przed spółgłoską piszemy ź: ź + n — późno' },
+        { wyraz: 'groźny',   luka: 3, poprawny: 'ź',  zasada: 'przed spółgłoską piszemy ź: ź + n — groźny' },
+        { wyraz: 'mroźny',   luka: 3, poprawny: 'ź',  zasada: 'przed spółgłoską piszemy ź: ź + n — mroźny' },
+        { wyraz: 'bliźniak', luka: 3, poprawny: 'ź',  zasada: 'przed spółgłoską piszemy ź: ź + n — bliźniak' },
+        { wyraz: 'wyraźnie', luka: 4, poprawny: 'ź',  zasada: 'przed spółgłoską piszemy ź: ź + n — wyraźnie' },
+        { wyraz: 'weź',      luka: 2, poprawny: 'ź',  zasada: 'na końcu wyrazu piszemy ź: weź' },
+        { wyraz: 'gałąź',    luka: 4, poprawny: 'ź',  zasada: 'na końcu wyrazu piszemy ź: gałąź' },
+      ],
+    },
+    {
+      id: 'dz-dzi',
+      nazwa: 'dź czy dzi',
+      warianty: ['dź', 'dzi'],
+      wyrazy: [
+        { wyraz: 'dziadek',      luka: 0, poprawny: 'dzi', zasada: 'przed samogłoską piszemy dzi: dzi + a — dziadek' },
+        { wyraz: 'dziecko',      luka: 0, poprawny: 'dzi', zasada: 'przed samogłoską piszemy dzi: dzi + e — dziecko' },
+        { wyraz: 'dziewczyna',   luka: 0, poprawny: 'dzi', zasada: 'przed samogłoską piszemy dzi: dzi + e — dziewczyna' },
+        { wyraz: 'dziura',       luka: 0, poprawny: 'dzi', zasada: 'przed samogłoską piszemy dzi: dzi + u — dziura' },
+        { wyraz: 'dzień',        luka: 0, poprawny: 'dzi', zasada: 'przed samogłoską piszemy dzi: dzi + e — dzień' },
+        { wyraz: 'dziesięć',     luka: 0, poprawny: 'dzi', zasada: 'przed samogłoską piszemy dzi: dzi + e — dziesięć' },
+        { wyraz: 'dziewięć',     luka: 0, poprawny: 'dzi', zasada: 'przed samogłoską piszemy dzi: dzi + e — dziewięć' },
+        { wyraz: 'niedziela',    luka: 3, poprawny: 'dzi', zasada: 'przed samogłoską piszemy dzi: dzi + e — niedziela' },
+        { wyraz: 'poniedziałek', luka: 5, poprawny: 'dzi', zasada: 'przed samogłoską piszemy dzi: dzi + a — poniedziałek' },
+        { wyraz: 'widzieć',      luka: 2, poprawny: 'dzi', zasada: 'przed samogłoską piszemy dzi: dzi + e — widzieć' },
+        { wyraz: 'bardziej',     luka: 3, poprawny: 'dzi', zasada: 'przed samogłoską piszemy dzi: dzi + e — bardziej' },
+        { wyraz: 'dźwig',        luka: 0, poprawny: 'dź',  zasada: 'przed spółgłoską piszemy dź: dź + w — dźwig' },
+        { wyraz: 'dźwięk',       luka: 0, poprawny: 'dź',  zasada: 'przed spółgłoską piszemy dź: dź + w — dźwięk' },
+        { wyraz: 'dźwigać',      luka: 0, poprawny: 'dź',  zasada: 'przed spółgłoską piszemy dź: dź + w — dźwigać' },
+        { wyraz: 'niedźwiedź',   luka: 3, poprawny: 'dź',  zasada: 'przed spółgłoską piszemy dź: dź + w — niedźwiedź' },
+        { wyraz: 'wiedźma',      luka: 3, poprawny: 'dź',  zasada: 'przed spółgłoską piszemy dź: dź + m — wiedźma' },
+        { wyraz: 'idź',          luka: 1, poprawny: 'dź',  zasada: 'na końcu wyrazu piszemy dź: idź' },
+        { wyraz: 'jedź',         luka: 2, poprawny: 'dź',  zasada: 'na końcu wyrazu piszemy dź: jedź' },
+        { wyraz: 'wejdź',        luka: 3, poprawny: 'dź',  zasada: 'na końcu wyrazu piszemy dź: wejdź' },
+      ],
+    },
   ];
 
   function losowy(tab) { return tab[Math.floor(Math.random() * tab.length)]; }
