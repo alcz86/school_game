@@ -61,6 +61,26 @@ h1 { font-size: clamp(1.75rem, 7vw, 2.5rem); text-align: center; margin: .5rem 0
   background: rgba(255,122,122,.15);
   border: 1px solid var(--zle); border-radius: 12px;
 }
+/* Przełącznik trybu odpowiedzi — nad listą rozdziałów.
+   Przyciski są celowo duże (min 48 px, czyli powyżej progu 44×44) — to ekran
+   dotykany palcem dziewięciolatka na telefonie. Na 320 px zawijają się w dwa
+   wiersze zamiast rozpychać stronę w poziomie. */
+.przelacznik-trybu {
+  display: flex; flex-wrap: wrap; gap: .5rem; align-items: center;
+  background: var(--karta); border-radius: 16px; padding: .75rem;
+  margin: 0 0 1rem;
+}
+.przelacznik-opis { flex: 1 0 100%; font-size: .85rem; opacity: .75; }
+.btn-tryb {
+  flex: 1 1 8rem;
+  min-height: 48px; min-width: 44px; padding: .6rem .8rem;
+  font-size: 1rem; font-weight: 600; font-family: inherit;
+  color: var(--tekst); background: transparent;
+  border: 2px solid rgba(255,255,255,.3); border-radius: 12px; cursor: pointer;
+}
+.btn-tryb-aktywny { color: var(--tlo); background: var(--akcent); border-color: var(--akcent); }
+.btn-tryb:hover, .btn-tryb:focus-visible { outline: none; filter: brightness(1.1); }
+
 .rozdzialy { display: grid; gap: .75rem; }
 .rozdzial {
   background: var(--karta); border-radius: 16px; padding: .75rem;

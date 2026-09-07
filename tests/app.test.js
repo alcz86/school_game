@@ -17,11 +17,13 @@ test('pokazEkran zwraca true dla znanego ekranu', () => {
 const matematyka = require('../dane/matematyka.js');
 const ortografia = require('../dane/ortografia.js');
 const slowka = require('../dane/slowka.js');
+const zdania = require('../dane/zdania.js');
 
 test('poziomyDla zwraca poziomy właściwe dla trybu', () => {
   assert.strictEqual(app.poziomyDla('matematyka').length, matematyka.POZIOMY.length);
   assert.strictEqual(app.poziomyDla('ortografia').length, ortografia.ZESTAWY.length);
-  assert.strictEqual(app.poziomyDla('angielski').length, slowka.ZESTAWY.length);
+  // Angielski ma DWA źródła: słówka i zdania z luką.
+  assert.strictEqual(app.poziomyDla('angielski').length, slowka.ZESTAWY.length + zdania.ZESTAWY.length);
   assert.deepStrictEqual(app.poziomyDla('nie-ma'), []);
 });
 
@@ -186,11 +188,14 @@ test('wierszeSkutecznosci trzyma kolejnosc poziomow z danych, nie z localStorage
 
 test('wierszeAngielski rozdziela powtorke klasy 2 od nowego materialu', () => {
   const g = app.wierszeAngielski(STAT);
-  assert.strictEqual(g.length, 2);
+  // Trzy grupy: powtórka, słówka klasy 3 i — osobno — zdania z luką.
+  assert.strictEqual(g.length, 3);
   assert.strictEqual(g[0].nazwa, 'Powtórka (klasa 2)');
   assert.strictEqual(g[0].wszystkie, 8);
   assert.strictEqual(g[0].procent, 75);
-  assert.strictEqual(g[1].nazwa, 'Klasa 3');
+  assert.strictEqual(g[1].nazwa, 'Klasa 3 — słówka');
+  assert.strictEqual(g[2].nazwa, 'Klasa 3 — zdania');
+  assert.strictEqual(g[2].wszystkie, 0);
   assert.strictEqual(g[1].wszystkie, 0);
   // Brak danych to null, nie 0% i nie NaN — inaczej ekran klamalby, ze syn ma 0%.
   assert.strictEqual(g[1].procent, null);
@@ -251,4 +256,129 @@ test('lista mylonych pokazuje mianownik, nie sama liczbe bledow', () => {
   assert.strictEqual(app.opisPomylek({ bledy: 1, bledyPierwsze: 1, proby: 1 }), '1 błąd z 1 próby');
   assert.strictEqual(app.opisPomylek({ bledy: 5, bledyPierwsze: 5, proby: 12 }), '5 błędów z 12 prób');
   assert.strictEqual(app.opisPomylek({ bledy: 2, bledyPierwsze: 2, proby: 2 }), '2 błędy z 2 prób');
+});
+
+// ------------------------------------- zdania z lukami + przełącznik trybu
+
+test('poziomyDla("angielski") pokazuje zdania obok slowek, z licznikiem zdan', () => {
+  const poziomy = app.poziomyDla('angielski');
+  const z = poziomy.find((p) => p.id === 'zdania-klasa3');
+  assert.ok(z, 'brak poziomu "zdania-klasa3" na liscie angielskiego');
+  assert.strictEqual(z.nazwa, 'Zdania z lukami');
+  // Opis MUSI mowic o zdaniach, nie o slowkach — to inna jednostka materialu.
+  assert.strictEqual(z.opis, zdania.ZESTAWY[0].zdania.length + ' zdań');
+  // Slowka nie znikaja.
+  for (const s of slowka.ZESTAWY) assert.ok(poziomy.some((p) => p.id === s.id), s.id);
+});
+
+test('pytaniaDla deleguje do wlasciciela idPoziomu', () => {
+  const trescZdan = new Set(zdania.ZESTAWY[0].zdania.map((s) => s.zdanie));
+  for (const p of app.pytaniaDla('angielski', 'zdania-klasa3', 12)) {
+    assert.ok(trescZdan.has(p.tresc), `"${p.tresc}" nie jest zdaniem z zestawu`);
+  }
+  const enSlowek = new Set(slowka.ZESTAWY.flatMap((z) => z.slowa.map((w) => w.en)));
+  for (const p of app.pytaniaDla('angielski', 'klasa3', 12)) {
+    assert.ok(enSlowek.has(p.odpowiedz), `"${p.odpowiedz}" nie jest slowkiem`);
+  }
+});
+
+test('rozdzialyAngielski dziala dla obu modulow, nie tylko dla slowek', () => {
+  assert.deepStrictEqual(app.rozdzialyAngielski('zdania-klasa3'), [1, 2, 3, 4, 5, 6, 7, 8]);
+  assert.deepStrictEqual(app.rozdzialyAngielski('klasa3'), [1, 2, 3, 4, 5, 6, 7, 8]);
+  assert.deepStrictEqual(app.rozdzialyAngielski('nie-ma-zestawu'), []);
+});
+
+test('bez jawnego trybu pytaniaDla zachowuje stare zachowanie oparte na klasie', () => {
+  // Klasa 2 = wybor z czterech; klasa 3+ = wpisywanie. Dokladnie jak przed przelacznikiem.
+  assert.strictEqual(app.domyslnyTrybOdpowiedzi('klasa2-powtorka'), 'wybor');
+  assert.strictEqual(app.domyslnyTrybOdpowiedzi('klasa3'), 'wpisywanie');
+  assert.strictEqual(app.domyslnyTrybOdpowiedzi('zdania-klasa3'), 'wpisywanie');
+
+  for (const p of app.pytaniaDla('angielski', 'klasa2-powtorka', 10)) {
+    assert.ok(Array.isArray(p.warianty) && p.warianty.length === 4, 'klasa 2 bez argumentu: wybor');
+  }
+  for (const id of ['klasa3', 'zdania-klasa3']) {
+    for (const p of app.pytaniaDla('angielski', id, 10)) {
+      assert.strictEqual(p.warianty, null, id + ' bez argumentu: wpisywanie');
+    }
+  }
+});
+
+test('jawny tryb wygrywa nad domyslnym — w obie strony, na slowkach i na zdaniach', () => {
+  // Zestaw klasy 3 wymuszony na "wybor" ma dac cztery opcje z poprawna wsrod nich.
+  for (const id of ['klasa3', 'zdania-klasa3']) {
+    const pytania = app.pytaniaDla('angielski', id, 12, null, 'wybor');
+    assert.strictEqual(pytania.length, 12, id);
+    for (const p of pytania) {
+      assert.strictEqual(p.warianty.length, 4, id + ': oczekiwano czterech opcji');
+      assert.strictEqual(new Set(p.warianty).size, 4, id + ': opcje sie powtarzaja');
+      assert.ok(p.warianty.includes(p.odpowiedz), id + ': brak poprawnej wsrod opcji');
+    }
+  }
+  // Zestaw klasy 2 wymuszony na "wpisywanie" ma NIE dac wariantow.
+  for (const p of app.pytaniaDla('angielski', 'klasa2-powtorka', 12, null, 'wpisywanie')) {
+    assert.strictEqual(p.warianty, null);
+  }
+});
+
+test('smieciowy tryb odpowiedzi spada na domyslny, nie tworzy trzeciego trybu', () => {
+  for (const smiec of ['WYBOR', 'quiz', '', 0, {}]) {
+    for (const p of app.pytaniaDla('angielski', 'klasa2-powtorka', 5, null, smiec)) {
+      assert.strictEqual(p.warianty.length, 4, 'oczekiwano domyslnego trybu klasy 2');
+    }
+  }
+});
+
+test('TRYBY_ODPOWIEDZI to dokladnie dwa tryby', () => {
+  assert.deepStrictEqual(app.TRYBY_ODPOWIEDZI, ['wybor', 'wpisywanie']);
+});
+
+test('rozpocznijWalke startuje dla zdan i respektuje zakres', () => {
+  assert.strictEqual(app.rozpocznijWalke('angielski', 'zdania-klasa3', { tylko: 7 }), true);
+  assert.strictEqual(app.rozpocznijWalke('angielski', 'zdania-klasa3', { tylko: 99 }), false);
+});
+
+test('ekran rodzica opisuje pomylone zdanie czytelnie, nie surowym kluczem', () => {
+  const s = zdania.ZESTAWY[0].zdania[0];
+  const opis = app.opisBledu('angielski', 'zdania-klasa3', 'zdania-klasa3:' + s.zdanie);
+  assert.ok(!opis.includes('zdania-klasa3:'), 'prefiks zestawu zostal w opisie: ' + opis);
+  assert.ok(opis.includes(s.zdanie), 'opis ma pokazac tresc zdania');
+  assert.ok(opis.includes(s.odpowiedz), 'opis ma pokazac poprawna odpowiedz');
+  // Slowka dalej dzialaja po staremu.
+  assert.strictEqual(app.opisBledu('angielski', 'klasa2-powtorka', 'klasa2-powtorka:chair'), 'chair — krzesło');
+});
+
+test('naglowek ekranu rozdzialow mowi o zdaniach, gdy wybrano zdania', () => {
+  assert.strictEqual(app.naglowekRozdzialow('zdania-klasa3'), 'Które zdania ćwiczymy?');
+  assert.strictEqual(app.naglowekRozdzialow('klasa3'), 'Które słówka ćwiczymy?');
+  assert.strictEqual(app.naglowekRozdzialow('nie-ma'), 'Które słówka ćwiczymy?');
+});
+
+test('nazwaPoziomu zna zestaw zdan', () => {
+  assert.strictEqual(app.nazwaPoziomu('angielski', 'zdania-klasa3'), 'Zdania z lukami');
+});
+
+test('zdania maja WLASNY wiersz na ekranie rodzica, osobny od slowek klasy 3', () => {
+  // Matka ma widziec osobno "czy zna slowka" i "czy rozumie zdania" — to dwie
+  // rozne umiejetnosci i wlasnie po to ten poziom powstal.
+  const stat = { tryby: { angielski: {
+    'klasa2-powtorka': { poprawne: 8, wszystkie: 10, procent: 80 },
+    'klasa3':          { poprawne: 9, wszystkie: 10, procent: 90 },
+    'zdania-klasa3':   { poprawne: 3, wszystkie: 10, procent: 30 },
+  } } };
+  const g = app.wierszeAngielski(stat);
+  assert.strictEqual(g.length, 3);
+  const slowkaK3 = g.find((x) => x.nazwa === 'Klasa 3 — słówka');
+  const zdaniaK3 = g.find((x) => x.nazwa === 'Klasa 3 — zdania');
+  assert.strictEqual(slowkaK3.wszystkie, 10);
+  assert.strictEqual(slowkaK3.procent, 90);
+  assert.strictEqual(zdaniaK3.wszystkie, 10, 'zdania nie moga wpasc do wiersza slowek');
+  assert.strictEqual(zdaniaK3.procent, 30, 'dobre slowka nie moga maskowac slabych zdan');
+});
+
+test('wierszeSkutecznosci pokazuje zestaw zdan pod czytelna nazwa', () => {
+  const stat = { tryby: { angielski: { 'zdania-klasa3': { poprawne: 4, wszystkie: 8, procent: 50 } } } };
+  const w = app.wierszeSkutecznosci(stat);
+  assert.strictEqual(w.length, 1);
+  assert.strictEqual(w[0].nazwaPoziomu, 'Zdania z lukami');
 });

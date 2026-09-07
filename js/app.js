@@ -22,6 +22,42 @@
   const matematyka = modul('matematyka', '../dane/matematyka.js');
   const ortografia = modul('ortografia', '../dane/ortografia.js');
   const slowka     = modul('slowka',     '../dane/slowka.js');
+  const zdania     = modul('zdania',     '../dane/zdania.js');
+
+  // Angielski ma dziś DWA źródła pytań o identycznym API (ZESTAWY / rozdzialy /
+  // generuj): słówka i zdania z luką. `modulAngielski` jest jedynym miejscem,
+  // które rozstrzyga, do którego z nich należy dany identyfikator zestawu —
+  // reszta app.js pyta o właściciela, zamiast wołać `slowka.*` na sztywno.
+  const ZRODLA_ANGIELSKIE = [slowka, zdania];
+
+  function modulAngielski(idPoziomu) {
+    return ZRODLA_ANGIELSKIE.find((m) => m.ZESTAWY.some((z) => z.id === idPoziomu)) || null;
+  }
+
+  function zestawAngielski(idPoziomu) {
+    for (const m of ZRODLA_ANGIELSKIE) {
+      const z = m.ZESTAWY.find((x) => x.id === idPoziomu);
+      if (z) return z;
+    }
+    return null;
+  }
+
+  // Numery rozdziałów dla DOWOLNEGO zestawu angielskiego — słówek albo zdań.
+  function rozdzialyAngielski(idPoziomu) {
+    const m = modulAngielski(idPoziomu);
+    return m ? m.rozdzialy(idPoziomu) : [];
+  }
+
+  // Tryb odpowiedzi, którym gra działała, zanim pojawił się przełącznik:
+  // powtórka z klasy 2 = wybór z czterech, nowy materiał (klasa 3+) = wpisywanie.
+  // To nadal DOMYŚLNE ustawienie przełącznika i zachowanie `pytaniaDla`
+  // wywołanego bez jawnego trybu.
+  function domyslnyTrybOdpowiedzi(idPoziomu) {
+    const zestaw = zestawAngielski(idPoziomu);
+    return zestaw && zestaw.klasa >= 3 ? 'wpisywanie' : 'wybor';
+  }
+
+  const TRYBY_ODPOWIEDZI = ['wybor', 'wpisywanie'];
   const postepyMod = modul('postepy',    './postepy.js');
   const postepy    = postepyMod.utworz();
 
@@ -49,11 +85,18 @@
       nazwa: z.nazwa,
       opis: z.opis || (z.warianty ? z.warianty.join(' czy ') : ''),
     }));
-    if (tryb === 'angielski')  return slowka.ZESTAWY.map((z) => ({ id: z.id, nazwa: z.nazwa, opis: z.slowa.length + ' słówek' }));
+    if (tryb === 'angielski') {
+      // Najpierw słówka, potem zdania — kolejność jest widoczna na ekranie wyboru
+      // poziomu i decyduje o tym, którego potwora dostaje który zestaw.
+      return slowka.ZESTAWY.map((z) => ({ id: z.id, nazwa: z.nazwa, opis: z.slowa.length + ' słówek' }))
+        .concat(zdania.ZESTAWY.map((z) => ({ id: z.id, nazwa: z.nazwa, opis: z.zdania.length + ' zdań' })));
+    }
     return [];
   }
 
-  function pytaniaDla(tryb, idPoziomu, ile, zakres) {
+  // `trybOdpowiedzi` (5. argument) jest OPCJONALNY. Podany — wygrywa; pominięty —
+  // gra zachowuje się dokładnie tak jak przed przełącznikiem (wg pola `klasa`).
+  function pytaniaDla(tryb, idPoziomu, ile, zakres, trybOdpowiedzi) {
     // Guard musi weryfikować idPoziomu tutaj, przed delegacją — matematyka.generuj
     // cicho fallbackuje na "trudne" dla nieznanego id i zwróciłaby pełnowartościowe
     // pytania zamiast []. pytaniaDla ma być jedynym punktem kontroli.
@@ -62,10 +105,14 @@
     if (tryb === 'matematyka') return matematyka.generuj(idPoziomu, ile, w);
     if (tryb === 'ortografia') return ortografia.generuj(idPoziomu, ile, w);
     if (tryb === 'angielski') {
-      // Spec §3.3: zestawy powtórkowe (klasa 2) — wybór z 4; nowy materiał (klasa 3+) — wpisywanie
-      const zestaw = slowka.ZESTAWY.find((z) => z.id === idPoziomu);
-      const trybPytania = zestaw && zestaw.klasa >= 3 ? 'wpisywanie' : 'wybor';
-      return slowka.generuj(idPoziomu, ile, trybPytania, w, zakres);
+      const m = modulAngielski(idPoziomu);
+      if (!m) return [];
+      // Wartość spoza listy trybów traktujemy jak brak wyboru — cicha literówka
+      // nie ma prawa zamienić rundy w tryb, którego nie ma.
+      const trybPytania = TRYBY_ODPOWIEDZI.includes(trybOdpowiedzi)
+        ? trybOdpowiedzi
+        : domyslnyTrybOdpowiedzi(idPoziomu);
+      return m.generuj(idPoziomu, ile, trybPytania, w, zakres);
     }
     return [];
   }
@@ -129,14 +176,59 @@
     return numery.indexOf(n) > 0;
   }
 
+  // Wybrany tryb odpowiedzi bieżącej rundy. Żyje TU, w module — nie w DOM.
+  // `null` znaczy „jeszcze nie wybrano", czyli: użyj domyślnego dla zestawu.
+  let trybOdpowiedzi = null;
+
+  function trybOdpowiedziDla(idZestawu) {
+    return trybOdpowiedzi || domyslnyTrybOdpowiedzi(idZestawu);
+  }
+
+  function ustawTrybOdpowiedzi(t) {
+    if (!TRYBY_ODPOWIEDZI.includes(t)) return false;
+    trybOdpowiedzi = t;
+    if (typeof document === 'undefined') return true;
+    // Przemalowujemy sam przełącznik, bez pełnego re-renderu ekranu — pełny render
+    // resetowałby przewinięcie listy rozdziałów w połowie ekranu.
+    document.querySelectorAll('.btn-tryb[data-tryb-odp]').forEach((b) => {
+      const aktywny = b.dataset.trybOdp === t;
+      b.classList.toggle('btn-tryb-aktywny', aktywny);
+      b.setAttribute('aria-pressed', aktywny ? 'true' : 'false');
+    });
+    return true;
+  }
+
+  const NAZWY_TRYBOW_ODPOWIEDZI = { wybor: 'Wybór z czterech', wpisywanie: 'Wpisywanie' };
+
+  function naglowekRozdzialow(idZestawu) {
+    const zestaw = zestawAngielski(idZestawu);
+    return zestaw && zestaw.zdania ? 'Które zdania ćwiczymy?' : 'Które słówka ćwiczymy?';
+  }
+
+  function przelacznikTrybu(aktywny) {
+    return '<div class="przelacznik-trybu" role="group" aria-label="Jak odpowiadasz">' +
+      '<span class="przelacznik-opis">Jak odpowiadasz?</span>' +
+      TRYBY_ODPOWIEDZI.map((t) =>
+        '<button class="btn-tryb' + (t === aktywny ? ' btn-tryb-aktywny' : '') + '"' +
+        ' data-tryb-odp="' + t + '" aria-pressed="' + (t === aktywny) + '">' +
+        esc(NAZWY_TRYBOW_ODPOWIEDZI[t]) + '</button>').join('') +
+      '</div>';
+  }
+
   function renderujWyborRozdzialu(idZestawu, komunikat) {
     const sekcja = document.getElementById('ekran-wybor-rozdzialu');
-    const numery = slowka.rozdzialy(idZestawu);
+    const numery = rozdzialyAngielski(idZestawu);
     sekcja.dataset.zestaw = idZestawu;
+    // Każde wejście na ten ekran zaczyna się od domyślnego trybu tego zestawu —
+    // matka prosiła o wybór PRZY KAŻDEJ RUNDZIE, a nie o ustawienie na stałe.
+    trybOdpowiedzi = domyslnyTrybOdpowiedzi(idZestawu);
     sekcja.innerHTML =
       '<button class="wstecz" data-akcja="wybor-poziomu">← Wróć</button>' +
-      '<h2>Które słówka ćwiczymy?</h2>' +
+      // Ekran obsługuje dwa rodzaje materiału — nagłówek musi mówić o tym,
+      // co dziecko faktycznie wybiera, a nie zawsze o „słówkach".
+      '<h2>' + esc(naglowekRozdzialow(idZestawu)) + '</h2>' +
       (komunikat ? '<p class="komunikat">' + esc(komunikat) + '</p>' : '') +
+      przelacznikTrybu(trybOdpowiedzi) +
       '<div class="rozdzialy">' +
       numery.map((n) => {
         const tylko =
@@ -204,8 +296,8 @@
     return !!el && !el.hidden;
   }
 
-  function rozpocznijWalke(tryb, idPoziomu, zakres) {
-    const pytania = pytaniaDla(tryb, idPoziomu, PYTAN_NA_RUNDE, zakres);
+  function rozpocznijWalke(tryb, idPoziomu, zakres, trybOdp) {
+    const pytania = pytaniaDla(tryb, idPoziomu, PYTAN_NA_RUNDE, zakres, trybOdp);
     if (!pytania.length) {
       // NIGDY nowaWalka([]) — dałoby stan bez pytań, z którego nie ma wyjścia.
       if (typeof document === 'undefined') return false;
@@ -214,7 +306,9 @@
       return false;
     }
     anulujFeedback();
-    kontekst = { tryb, idPoziomu, zakres: zakres || null };
+    // `trybOdpowiedzi` trafia do kontekstu, żeby „🔁 Jeszcze raz" powtórzyło rundę
+    // w tym samym trybie, w którym dziecko właśnie grało.
+    kontekst = { tryb, idPoziomu, zakres: zakres || null, trybOdpowiedzi: trybOdp || null };
     stanWalki = walkaMod.nowaWalka(pytania);
     wpisMat = '';
     trafienia = 0;
@@ -479,8 +573,14 @@
       return para ? reszta + ' (' + para + ')' : reszta;
     }
     if (tryb === 'angielski') {
-      const zestaw = slowka.ZESTAWY.find((z) => z.id === idZestawu);
-      const slowo = zestaw && zestaw.slowa.find((s) => s.en === reszta);
+      const zestaw = zestawAngielski(idZestawu);
+      if (zestaw && zestaw.zdania) {
+        // Identyfikator zdania to jego pełna treść. Sam klucz („He ____ kayaking.")
+        // nie mówi rodzicowi, CZEGO dziecko nie umie — dopisujemy poprawną odpowiedź.
+        const z = zestaw.zdania.find((x) => x.zdanie === reszta);
+        return z ? z.zdanie + ' → ' + z.odpowiedz : reszta;
+      }
+      const slowo = zestaw && zestaw.slowa && zestaw.slowa.find((s) => s.en === reszta);
       return slowo ? reszta + ' — ' + slowo.pl : reszta;
     }
     return reszta;
@@ -516,14 +616,20 @@
   // z samej listy zestawów tego nie da się odczytać.
   function wierszeAngielski(stat) {
     const wTrybie = (stat.tryby && stat.tryby.angielski) || {};
+    // Zdania mają WŁASNY wiersz, osobny od słówek klasy 3, i jest to celowe:
+    // „czy zna słówka" i „czy rozumie zdania" to dwie różne umiejętności,
+    // a właśnie po to ten poziom powstał. Zlanie ich w jeden wiersz ukryłoby
+    // przypadek dziecka, które zna każde słowo z osobna i nie umie ich złożyć.
+    // KOLEJNOŚĆ GRUP JEST STAŁA — pierwsze dwie pozycje to nadal powtórka i klasa 3.
     const grupy = [
-      { klucz: 'powtorka', nazwa: 'Powtórka (klasa 2)', poprawne: 0, wszystkie: 0 },
-      { klucz: 'klasa3',   nazwa: 'Klasa 3',            poprawne: 0, wszystkie: 0 },
+      { klucz: 'powtorka', nazwa: 'Powtórka (klasa 2)',  poprawne: 0, wszystkie: 0 },
+      { klucz: 'klasa3',   nazwa: 'Klasa 3 — słówka',    poprawne: 0, wszystkie: 0 },
+      { klucz: 'zdania',   nazwa: 'Klasa 3 — zdania',    poprawne: 0, wszystkie: 0 },
     ];
     for (const id of Object.keys(wTrybie)) {
-      const zestaw = slowka.ZESTAWY.find((z) => z.id === id);
+      const zestaw = zestawAngielski(id);
       if (!zestaw) continue;
-      const g = zestaw.klasa >= 3 ? grupy[1] : grupy[0];
+      const g = zestaw.zdania ? grupy[2] : (zestaw.klasa >= 3 ? grupy[1] : grupy[0]);
       g.poprawne += wTrybie[id].poprawne;
       g.wszystkie += wTrybie[id].wszystkie;
     }
@@ -698,18 +804,24 @@
           else rozpocznijWalke(tryb, poziom.dataset.poziom);
           return;
         }
+        const btnTryb = e.target.closest('.btn-tryb[data-tryb-odp]');
+        if (btnTryb) {
+          ustawTrybOdpowiedzi(btnTryb.dataset.trybOdp);
+          return;
+        }
         const zakres = e.target.closest('.btn-zakres[data-rozdzial]');
         if (zakres) {
           // dataset.* to ZAWSZE string — bez Number() zakres cicho przepadłby.
           const n = Number(zakres.dataset.rozdzial);
           const idZestawu = document.getElementById('ekran-wybor-rozdzialu').dataset.zestaw;
           rozpocznijWalke('angielski', idZestawu,
-            zakres.dataset.zakres === 'do' ? { do: n } : { tylko: n });
+            zakres.dataset.zakres === 'do' ? { do: n } : { tylko: n },
+            trybOdpowiedziDla(idZestawu));
           return;
         }
         const jeszczeRaz = e.target.closest('[data-akcja="jeszcze-raz"]');
         if (jeszczeRaz && kontekst) {
-          rozpocznijWalke(kontekst.tryb, kontekst.idPoziomu, kontekst.zakres);
+          rozpocznijWalke(kontekst.tryb, kontekst.idPoziomu, kontekst.zakres, kontekst.trybOdpowiedzi);
           return;
         }
         if (blokada) return;
@@ -755,6 +867,8 @@
     pokazEkran, poziomyDla, pytaniaDla, postepy, rozpocznijWalke,
     renderujRodzica, nazwaPoziomu, opisBledu, wierszeSkutecznosci, wierszeAngielski,
     formatujDate, formatujDni, zakresDoMaSens, opisPomylek,
+    TRYBY_ODPOWIEDZI, domyslnyTrybOdpowiedzi, rozdzialyAngielski, modulAngielski,
+    naglowekRozdzialow,
   };
   if (typeof window !== 'undefined') {
     window.GRA = window.GRA || {};
