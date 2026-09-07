@@ -155,6 +155,17 @@
   let wpisMat = '';          // bufor klawiatury numerycznej
   let blokada = false;       // blokada wejścia na czas informacji zwrotnej
   let timerFeedback = null;
+
+  // Ile czasu dziecko ma na informację zwrotną, zanim ekran przeskoczy dalej.
+  //
+  // Pierwotnie było 1,2 s dla wszystkiego. Za mało: przy błędzie i przy zasadzie
+  // ortograficznej dziewięciolatek nie zdąża przeczytać zdania, a to właśnie
+  // ten moment jest najcenniejszy dydaktycznie w całej rundzie — pokazuje, DLACZEGO
+  // odpowiedź jest taka, a nie inna.
+  //
+  // Samo „Dobrze!" bez tekstu zostaje krótkie, żeby runda nie stała się ślamazarna.
+  const CZAS_FEEDBACK_KROTKI = 1200;
+  const CZAS_FEEDBACK_Z_TEKSTEM = 3200;
   let trafienia = 0;
   let najdluzszeCombo = 0;
   let pomylone = [];         // [{ tresc, oczekiwana, wyjasnienie }]
@@ -298,14 +309,21 @@
     }
 
     let feedback;
+    // Czy informacja zwrotna zawiera tekst DO PRZECZYTANIA (zasadę, wyjaśnienie,
+    // poprawną odpowiedź) — czy tylko samo „Dobrze!". Od tego zależy, ile czasu
+    // dziecko dostaje, zanim ekran przeskoczy dalej.
+    let jestCoCzytac = false;
     if (o.poprawna) {
       // W ortografii zasadę pokazujemy TAKŻE po trafieniu — inaczej dziecko
       // uczy się klikania, nie ortografii.
       const zasada = tryb === 'ortografia' && pytanie.wyjasnienie
         ? '<p class="wyjasnienie">' + esc(pytanie.wyjasnienie) + '</p>' : '';
+      jestCoCzytac = zasada !== '';
       feedback = '<div class="feedback feedback-dobrze"><p class="feedback-tytul">Dobrze! 💥' +
         (o.mnoznik > 1 ? ' ×' + o.mnoznik : '') + '</p>' + zasada + '</div>';
     } else {
+      // Błąd zawsze pokazuje co najmniej poprawną odpowiedź — zawsze jest co czytać.
+      jestCoCzytac = true;
       feedback = '<div class="feedback feedback-zle">' +
         '<p class="feedback-tytul">Prawie! Poprawnie: <strong>' + esc(o.oczekiwana) + '</strong></p>' +
         (pytanie.wyjasnienie ? '<p class="wyjasnienie">' + esc(pytanie.wyjasnienie) + '</p>' : '') +
@@ -343,7 +361,7 @@
       } finally {
         odblokuj();
       }
-    }, 1200);
+    }, jestCoCzytac ? CZAS_FEEDBACK_Z_TEKSTEM : CZAS_FEEDBACK_KROTKI);
   }
 
   // -------------------------------------------------------------- ekran wyniku
