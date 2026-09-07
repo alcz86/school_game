@@ -225,6 +225,15 @@
         { wyraz: 'dźwig',        luka: 0, poprawny: 'dź', warianty: ['dź', 'dzi'],  zasada: 'przed spółgłoską piszemy dź: dź + w — dźwig' },
         { wyraz: 'dźwięk',       luka: 0, poprawny: 'dź', warianty: ['dź', 'dzi'],  zasada: 'przed spółgłoską piszemy dź: dź + w — dźwięk' },
         { wyraz: 'dźwigać',      luka: 0, poprawny: 'dź', warianty: ['dź', 'dzi'],  zasada: 'przed spółgłoską piszemy dź: dź + w — dźwigać' },
+        // ŚWIADOMIE ZOSTAWIONE, mimo słabszej dydaktyki. `niedźwiedź` ma DWA `dź`,
+        // więc przy każdej pozycji luki drugie `dź` zostaje widoczne i dziecko może
+        // je przepisać, zamiast zastosować regułę. Przeniesienie luki na końcowe `dź`
+        // (`niedźwie_`) odtwarza dokładnie tę samą podpowiedź z drugiej strony.
+        // Wymiana wyrazu też nie wychodzi: `śledź` → zły wariant daje `śledzi`,
+        // `łabędź` → `łabędzi` — oba to prawdziwe polskie słowa, czyli usterka
+        // gorsza od obecnej. Pytanie NIE jest błędne (`dź` jest poprawne, `zasada`
+        // nazywa regułę po odpowiedzi), a regułę „przed spółgłoską" niosą bez
+        // podpowiedzi jeszcze `dźwig`, `dźwięk`, `dźwigać` i `wiedźma`.
         { wyraz: 'niedźwiedź',   luka: 3, poprawny: 'dź', warianty: ['dź', 'dzi'],  zasada: 'przed spółgłoską piszemy dź: dź + w — niedźwiedź' },
         { wyraz: 'wiedźma',      luka: 3, poprawny: 'dź', warianty: ['dź', 'dzi'],  zasada: 'przed spółgłoską piszemy dź: dź + m — wiedźma' },
         { wyraz: 'idź',          luka: 1, poprawny: 'dź', warianty: ['dź', 'dzi'],  zasada: 'na końcu wyrazu piszemy dź: idź' },

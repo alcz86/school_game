@@ -131,7 +131,34 @@ test('nazwaPoziomu zwraca czytelna nazwe, nie identyfikator', () => {
   assert.strictEqual(app.nazwaPoziomu('matematyka', 'trudne'), 'Trudne');
   assert.strictEqual(app.nazwaPoziomu('ortografia', 'o-u'), 'ó czy u');
   assert.strictEqual(app.nazwaPoziomu('angielski', 'klasa2-powtorka'), 'Klasa 2 — powtórka');
-  assert.strictEqual(app.nazwaPoziomu('matematyka', 'nie-ma'), 'nie-ma');
+  // Nieznany identyfikator NIE MOŻE wyciec na ekran rodzica jako surowy klucz.
+  assert.strictEqual(app.nazwaPoziomu('matematyka', 'nie-ma'), 'Zestaw z wcześniejszej wersji gry');
+});
+
+test('nazwaPoziomu podpisuje stare zestawy zmiekczen, a nie pokazuje ich kluczy', () => {
+  // Realne postępy dziecka sprzed scalenia — zestawów już nie ma w danych,
+  // ale wiersze zostają na ekranie rodzica i muszą być czytelne.
+  ['s-si', 'c-ci', 'n-ni', 'z-zi', 'dz-dzi'].forEach((id) => {
+    assert.strictEqual(app.nazwaPoziomu('ortografia', id), 'Zmiękczenia (starsze wyniki)');
+  });
+  // Nieznany zestaw ortograficzny też nie pokazuje klucza.
+  assert.strictEqual(app.nazwaPoziomu('ortografia', 'a-e'), 'Zestaw z wcześniejszej wersji gry');
+});
+
+test('poziomyDla ortografia nie wywala sie na zestawie bez opisu i bez wariantow', () => {
+  // P3: `opis || warianty.join()` — drugi człon też potrzebuje strażnika.
+  // Wstrzykujemy na chwilę zestaw bez OBU pól; bez strażnika to rzuca TypeError
+  // i cała lista poziomów przestaje się renderować.
+  const ortografia = require('../dane/ortografia.js');
+  ortografia.ZESTAWY.push({ id: 'test-bez-opisu', nazwa: 'Bez opisu', wyrazy: [] });
+  try {
+    const poziomy = app.poziomyDla('ortografia');
+    const dodany = poziomy.find((p) => p.id === 'test-bez-opisu');
+    assert.strictEqual(dodany.opis, '');
+    poziomy.forEach((p) => assert.strictEqual(typeof p.opis, 'string'));
+  } finally {
+    ortografia.ZESTAWY.pop();
+  }
 });
 
 test('wierszeSkutecznosci buduje wiersze dla wszystkich trybow', () => {

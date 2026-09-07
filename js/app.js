@@ -40,7 +40,15 @@
 
   function poziomyDla(tryb) {
     if (tryb === 'matematyka') return matematyka.POZIOMY.map((p) => ({ id: p.id, nazwa: p.nazwa, opis: p.opis }));
-    if (tryb === 'ortografia') return ortografia.ZESTAWY.map((z) => ({ id: z.id, nazwa: z.nazwa, opis: z.opis || z.warianty.join(' czy ') }));
+    // `opis` jest polem opcjonalnym: gdy go nie ma, składamy podpis z pary wariantów
+    // zestawu. Ale `warianty` też są opcjonalne — zestaw `zmiekczenia` ich nie ma
+    // (parę niesie każdy wyraz osobno), więc drugi człon musi mieć własnego strażnika.
+    // Bez niego zestaw bez OBU pól wywala całą listę poziomów na `undefined.join`.
+    if (tryb === 'ortografia') return ortografia.ZESTAWY.map((z) => ({
+      id: z.id,
+      nazwa: z.nazwa,
+      opis: z.opis || (z.warianty ? z.warianty.join(' czy ') : ''),
+    }));
     if (tryb === 'angielski')  return slowka.ZESTAWY.map((z) => ({ id: z.id, nazwa: z.nazwa, opis: z.slowa.length + ' słówek' }));
     return [];
   }
@@ -415,11 +423,34 @@
   const PROG_SLABY = 60;   // spec §4 / brief: poniżej tego progu wynik wyróżniamy na czerwono
   const BRAK_DANYCH = 'Jeszcze brak danych — zagraj pierwszą rundę.';
 
+  // Zestawy ortograficzne, które kiedyś istniały i zostały scalone albo usunięte.
+  // W `localStorage` dziecka zostały po nich PRAWDZIWE wyniki i tych danych nie
+  // kasujemy — trzeba je tylko podpisać po ludzku. Kluczem jest stare `id`.
+  const STARE_ZESTAWY_ORTOGRAFIA = {
+    's-si':   'Zmiękczenia (starsze wyniki)',
+    'c-ci':   'Zmiękczenia (starsze wyniki)',
+    'n-ni':   'Zmiękczenia (starsze wyniki)',
+    'z-zi':   'Zmiękczenia (starsze wyniki)',
+    'dz-dzi': 'Zmiękczenia (starsze wyniki)',
+  };
+
   // Czytelna nazwa poziomu/zestawu. Aleksandra nie ma widzieć `o-u` ani
   // `klasa2-powtorka` — to klucze techniczne, bezużyteczne na tym ekranie.
+  //
+  // Poziom może nie istnieć w danych, bo postępy przeżywają zmianę danych:
+  // wpis `ortografia|s-si|...` zapisany przed scaleniem zmiękczeń wskazuje na
+  // zestaw, którego już nie ma. Dwa piętra zapasowe:
+  //   1. znana mapa starych identyfikatorów — daje nazwę zgodną z prawdą
+  //      („to były zmiękczenia"), więc wiersz nadal niesie sens dydaktyczny;
+  //   2. ogólny podpis dla identyfikatora, którego nie znamy — nigdy nie
+  //      przepuszcza surowego klucza na ekran, choćby dane przyszły z przyszłości.
   function nazwaPoziomu(tryb, idPoziomu) {
     const p = poziomyDla(tryb).find((x) => x.id === idPoziomu);
-    return p ? p.nazwa : idPoziomu;
+    if (p) return p.nazwa;
+    if (tryb === 'ortografia' && STARE_ZESTAWY_ORTOGRAFIA[idPoziomu]) {
+      return STARE_ZESTAWY_ORTOGRAFIA[idPoziomu];
+    }
+    return 'Zestaw z wcześniejszej wersji gry';
   }
 
   // Zamiana identyfikatora pomylonej pozycji na opis po ludzku.

@@ -69,8 +69,16 @@ Uwagi praktyczne:
 
 ## Jak dopisać wyrazy ortograficzne
 
-Edytujesz `dane/ortografia.js`. Struktura jest podobna — trzy zestawy (`o-u`, `rz-z`,
-`ch-h`), a w każdym lista `wyrazy`. Jeden wpis wygląda tak:
+Edytujesz `dane/ortografia.js`. Struktura jest podobna — **cztery** zestawy (`o-u`,
+`rz-z`, `ch-h` i `zmiekczenia`), a w każdym lista `wyrazy`.
+
+⚠️ **Zestaw `zmiekczenia` ma inną budowę niż trzy pozostałe — ma osobny przykład
+niżej. Nie kopiuj tam wpisu z tego akapitu.**
+
+### Zestawy `o-u`, `rz-z`, `ch-h`
+
+Para przycisków (`ó` czy `u`) jest tu wspólna dla całego zestawu, więc wpis jej
+nie powtarza. Jeden wpis wygląda tak:
 
 ```js
         { wyraz: 'dworzec', luka: 3, poprawny: 'rz', zasada: 'rz wymienia się na r: dworzec — dworca' },
@@ -109,6 +117,39 @@ Dwie pułapki, o których warto wiedzieć:
    więc odpowiada rozsądnie i traci serce. Tego test nie wyłapie sam (nie ma tu
    słownika), więc po dopisaniu wyrazu wstaw w lukę **zły** wariant i sprawdź, czy
    nie wyszło ci prawdziwe słowo. Jeśli wyszło — wybierz inny wyraz na tę zasadę.
+
+### Zestaw `zmiekczenia` — tu KAŻDY wyraz musi mieć własne `warianty`
+
+Ten jeden zestaw miesza w jednej rundzie pięć różnych par (`ś/si`, `ć/ci`, `ń/ni`,
+`ź/zi`, `dź/dzi`), więc para przycisków nie może być wspólna dla zestawu — musi
+pasować do konkretnego wyrazu, inaczej przy `ciocia` dziecko dostałoby do wyboru
+`ś` i `si`. Dlatego **wpis bez pola `warianty` wywraca rundę** (gra próbuje wtedy
+sięgnąć po parę zestawu, której tam nie ma).
+
+Gotowy wpis do skopiowania — zwróć uwagę na `warianty`:
+
+```js
+        { wyraz: 'ciocia', luka: 0, poprawny: 'ci', warianty: ['ć', 'ci'], zasada: 'przed samogłoską piszemy ci: ci + o — ciocia' },
+```
+
+`warianty` to zawsze **para**: forma z kreską i forma z `i`, w tej kolejności
+(`['ć', 'ci']`, `['ń', 'ni']`, `['dź', 'dzi']`…). `poprawny` musi być jednym
+z tych dwóch — i musi się zgadzać co do długości z tym, co znika z wyrazu
+(`ci` ma 2 znaki, `dzi` ma 3).
+
+Reguła jest **pozycyjna** — patrzysz na to, co stoi zaraz za luką:
+
+| Co stoi po luce | Piszemy | Przykład |
+|---|---|---|
+| samogłoska `a ą e ę o ó u` | `si ci ni zi dzi` | s**io**stra, c**io**cia, dz**ia**dek |
+| spółgłoska albo koniec wyrazu | `ś ć ń ź dź` | **ś**lad, ko**ń**cówka, by**ć** |
+
+⚠️ **Uwaga na pozorne zmiękczenia.** `zima`, `nic`, `cisza`, `dzik` **wyglądają**
+jak zmiękczenia, ale `i` jest tam pełną samogłoską — nie ma konkurencyjnej pisowni
+(*źma*, *ńc* nie istnieją), więc nie ma czego ćwiczyć. Test reguły pozycyjnej takie
+wyrazy odrzuca, więc jeśli po dopisaniu `node --test` się wywala z nazwą wyrazu —
+to prawdopodobnie właśnie ten przypadek. Wybierz wyraz, w którym obie pisownie
+byłyby wymawiane tak samo.
 
 ---
 
@@ -177,9 +218,10 @@ Jeśli zaczynasz edytować `js/`, żeby dodać materiał — coś poszło nie ta
 Gra jest skończona i grywalna, ale w dwóch miejscach jest skromniejsza niż
 specyfikacja w `docs/`. Lepiej, żebyś wiedziała to od nas niż od syna:
 
-- **Trzy zestawy ortograficzne zamiast pięciu.** Są `ó/u`, `rz/ż`, `ch/h`.
-  Nie ma `ą/ę` ani `wielkiej litery`. Da się je dopisać bez ruszania `js/` —
-  patrz „Jak dopisać wyrazy ortograficzne" wyżej.
+- **Brakuje `ą/ę` i `wielkiej litery`.** Są cztery zestawy ortograficzne: `ó/u`,
+  `rz/ż`, `ch/h` oraz `Zmiękczenia` (jedna grupa, a w niej pięć par: `ś/si`,
+  `ć/ci`, `ń/ni`, `ź/zi`, `dź/dzi`). Dwóch zestawów ze specyfikacji nadal nie ma.
+  Da się je dopisać bez ruszania `js/` — patrz „Jak dopisać wyrazy ortograficzne" wyżej.
 - **Poziomy nie odblokowują się po kolei i odznaki nigdzie się nie zbierają.**
   Specyfikacja przewidywała, że pokonanie bossa otwiera następny poziom. W grze
   wszystkie poziomy są dostępne od początku, a odznaka pojawia się tylko na ekranie

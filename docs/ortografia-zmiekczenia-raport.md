@@ -9,6 +9,29 @@ Testy: **111 → 113**, wszystkie zielone.
 
 ---
 
+> ## ⚠️ TEN RAPORT MA DWIE WARSTWY — CZYTAJ ANEKS
+>
+> Sekcje **1–7 poniżej opisują stan z pierwszej rundy**, czyli **pięć osobnych
+> zestawów** (`s-si`, `c-ci`, `n-ni`, `z-zi`, `dz-dzi`). **Ten stan już nie istnieje.**
+> Jeszcze tego samego dnia zestawy zostały **scalone w jeden zestaw `zmiekczenia`**,
+> a dane pod tym zmieniono. Co dokładnie jest już nieprawdą w sekcjach 1–7:
+>
+> | Sekcja | Co mówi | Jak jest naprawdę |
+> |---|---|---|
+> | 2 | pięć zestawów `s-si` … `dz-dzi`, każdy z własnym `id` i podpisem | jeden zestaw `zmiekczenia`, nazwa „Zmiękczenia", opis `ś/si · ć/ci · ń/ni · ź/zi · dź/dzi` |
+> | 2 | `warianty` to pole ZESTAWU | `warianty` to pole **KAŻDEGO WYRAZU** (patrz Aneks §2) |
+> | 2 | wyraz `cień` na liście `n-ni` | **usunięty** — kolidował z `cieńszy`/renderem po scaleniu (Aneks §4) |
+> | 2 | liczebności per zestaw (20 + 19 + 19 + 20 + 19) | **97 wyrazów** w jednej grupie po usunięciach |
+> | 5 | „111 → 113 testów" | to była tylko pierwsza runda; aktualną liczbę podaje Aneks §5 |
+> | 6 | weryfikacja przeglądarkowa na pięciu kaflach | jeden kafel „Zmiękczenia" (Aneks §7) |
+>
+> **Sekcje 1 i 3 (reguła pozycyjna, wyrazy odrzucone) pozostają aktualne** —
+> scalenie nie zmieniło ani reguły, ani listy odrzuceń.
+>
+> Źródłem prawdy o obecnym stanie jest **Aneks** na końcu pliku oraz `dane/ortografia.js`.
+
+---
+
 ## 1. Zasada, której uczą te zestawy
 
 W odróżnieniu od `ó/u` (gdzie trzeba pamiętać listę) ta reguła jest **pozycyjna** —
