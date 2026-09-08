@@ -256,3 +256,33 @@ prawdziwego polskiego słowa (szczegóły w sekcji o wyrazach ortograficznych).
 W obecnych danych zdarza się to raz — `nóż` z `u` daje `nuż` — i zostawiliśmy to
 świadomie: `nuż` żyje właściwie tylko w potocznym „a nuż", a `nóż` jest za dobrym
 przykładem wymiany `ó` → `o`, żeby go wyrzucać.
+
+---
+
+## Liczebniki w zmiękczeniach — czego gra NIE nauczy
+
+W zestawie `Zmiękczenia` jest dziewięć liczebników (`sześćdziesiąt`, `pięćdziesiąt`,
+`sześćset`, `czterdzieści`, `tysiąc`…). Ćwiczą `dzi`, `ś`, `si` i `ć` **wewnątrz**
+tych wyrazów.
+
+⚠️ Najczęstszy szkolny błąd w tych liczebnikach to *sześdziesiąt* i *pięcdziesiąt* —
+**zgubione `ć`**. Gra pokazuje dwa przyciski (`ć` i `ci`), więc ćwiczy wybór między
+tymi dwiema formami, a nie samo istnienie `ć` w wyrazie. To ograniczenie jest znane
+i przyjęte. **Nie obchodź go dorabianiem trzeciej opcji** typu „brak litery" — to
+zmiana mechaniki całej gry, nie dopisanie materiału, i wymaga osobnej decyzji.
+
+Szczegóły, pełna lista dopisanych wyrazów i lista odrzuconych: `docs/liczebniki-raport.md`.
+
+---
+
+## Ekran rodzica: kolumna „Jak odpowiadał"
+
+Tabela „Angielski: powtórka a nowy materiał" pokazuje, **w jakim trybie powstały
+wyniki** — `Wpisywanie`, `Wybór z czterech`, albo `mieszane (…)` z rozbiciem na
+liczby. Powód: wybór z czterech jest łatwiejszy, a tryb jest pamiętany między
+rundami, więc bez tej kolumny rosnący procent mógłby oznaczać po prostu, że dziecko
+osiadło w łatwiejszym trybie.
+
+Wyniki zapisane przed wrześniem 2026 nie mają zapisanego trybu i są podpisane jako
+`starsze wyniki` — celowo, bo podpisanie ich zmyślonym trybem psułoby właśnie to
+porównanie. Liczą się do procentów tak jak dotąd.

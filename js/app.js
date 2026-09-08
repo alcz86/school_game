@@ -362,7 +362,19 @@
     anulujFeedback();
     // `trybOdpowiedzi` trafia do kontekstu, żeby „🔁 Jeszcze raz" powtórzyło rundę
     // w tym samym trybie, w którym dziecko właśnie grało.
-    kontekst = { tryb, idPoziomu, zakres: zakres || null, trybOdpowiedzi: trybOdp || null };
+    // Do postępów zapisujemy sposób ROZSTRZYGNIĘTY, nie surowy argument. `trybOdp`
+    // bywa `null` (start bez jawnego wyboru), a wtedy runda i tak leci w trybie
+    // domyślnym dla zestawu — gdyby do statystyk poszedł `null`, ekran rodzica
+    // pokazywałby „starsze wyniki" dla rund rozegranych dziś.
+    // Poza angielskim sposób nie istnieje (ortografia ma przyciski wariantów,
+    // matematyka klawiaturę) i zostaje `null` — postepy.js takiej wartości nie liczy.
+    const sposob = tryb !== 'angielski' ? null
+      : (TRYBY_ODPOWIEDZI.includes(trybOdp) ? trybOdp : domyslnyTrybOdpowiedzi(idPoziomu));
+    kontekst = {
+      tryb, idPoziomu, zakres: zakres || null,
+      trybOdpowiedzi: trybOdp || null,
+      sposobOdpowiedzi: sposob,
+    };
     stanWalki = walkaMod.nowaWalka(pytania);
     wpisMat = '';
     trafienia = 0;
@@ -451,7 +463,8 @@
     // rundzie; powtórka po pomyłce nadal zlicza błąd (wagi), ale nie zawyża procentu.
     const pierwszePodejscie = !odpowiedzianeWRundzie.has(pytanie.id);
     odpowiedzianeWRundzie.add(pytanie.id);
-    postepy.zapiszOdpowiedz(tryb, idPoziomu, pytanie.id, o.poprawna, pierwszePodejscie);
+    postepy.zapiszOdpowiedz(tryb, idPoziomu, pytanie.id, o.poprawna, pierwszePodejscie,
+      kontekst.sposobOdpowiedzi);
 
     if (o.poprawna) {
       trafienia += 1;
@@ -675,10 +688,11 @@
     // a właśnie po to ten poziom powstał. Zlanie ich w jeden wiersz ukryłoby
     // przypadek dziecka, które zna każde słowo z osobna i nie umie ich złożyć.
     // KOLEJNOŚĆ GRUP JEST STAŁA — pierwsze dwie pozycje to nadal powtórka i klasa 3.
+    const sposobyTrybu = (stat.sposoby && stat.sposoby.angielski) || {};
     const grupy = [
-      { klucz: 'powtorka', nazwa: 'Powtórka (klasa 2)',  poprawne: 0, wszystkie: 0 },
-      { klucz: 'klasa3',   nazwa: 'Klasa 3 — słówka',    poprawne: 0, wszystkie: 0 },
-      { klucz: 'zdania',   nazwa: 'Klasa 3 — zdania',    poprawne: 0, wszystkie: 0 },
+      { klucz: 'powtorka', nazwa: 'Powtórka (klasa 2)',  poprawne: 0, wszystkie: 0, wybor: 0, wpisywanie: 0 },
+      { klucz: 'klasa3',   nazwa: 'Klasa 3 — słówka',    poprawne: 0, wszystkie: 0, wybor: 0, wpisywanie: 0 },
+      { klucz: 'zdania',   nazwa: 'Klasa 3 — zdania',    poprawne: 0, wszystkie: 0, wybor: 0, wpisywanie: 0 },
     ];
     for (const id of Object.keys(wTrybie)) {
       const zestaw = zestawAngielski(id);
@@ -686,13 +700,58 @@
       const g = zestaw.zdania ? grupy[2] : (zestaw.klasa >= 3 ? grupy[1] : grupy[0]);
       g.poprawne += wTrybie[id].poprawne;
       g.wszystkie += wTrybie[id].wszystkie;
+      const s = sposobyTrybu[id] || {};
+      g.wybor += s.wybor || 0;
+      g.wpisywanie += s.wpisywanie || 0;
     }
-    return grupy.map((g) => ({
-      nazwa: g.nazwa,
-      poprawne: g.poprawne,
-      wszystkie: g.wszystkie,
-      procent: g.wszystkie ? Math.round((g.poprawne / g.wszystkie) * 100) : null,
-    }));
+    return grupy.map((g) => {
+      // Reszta bez podpisu = odpowiedzi zapisane, ZANIM gra zaczęła notować sposób
+      // (postępy syna sprzed 2026-09-08). Nie wolno ich domyślnie doliczyć do żadnego
+      // sposobu ani przemilczeć: skuteczność w wyborze z czterech jest z natury
+      // wyższa niż przy wpisywaniu, więc podpisanie starych wyników zmyślonym trybem
+      // fałszowałoby dokładnie to porównanie, po które matka na ten ekran wchodzi.
+      const bezPodpisu = Math.max(0, g.wszystkie - g.wybor - g.wpisywanie);
+      return {
+        nazwa: g.nazwa,
+        poprawne: g.poprawne,
+        wszystkie: g.wszystkie,
+        procent: g.wszystkie ? Math.round((g.poprawne / g.wszystkie) * 100) : null,
+        wybor: g.wybor,
+        wpisywanie: g.wpisywanie,
+        bezPodpisu,
+        sposob: rodzajSposobu(g.wybor, g.wpisywanie, bezPodpisu),
+        opisSposobu: opisSposobu(g.wybor, g.wpisywanie, bezPodpisu),
+      };
+    });
+  }
+
+  // 'wybor' | 'wpisywanie' | 'mieszane' | null (nic nie wiadomo).
+  // „Mieszane" pada, gdy w grupie są odpowiedzi z WIĘCEJ NIŻ JEDNEGO źródła —
+  // także wtedy, gdy drugim źródłem są nieopisane wyniki sprzed tej wersji.
+  // Uśrednienie po cichu byłoby tu gorsze niż przyznanie się do mieszanki.
+  function rodzajSposobu(wybor, wpisywanie, bezPodpisu) {
+    const ile = (wybor > 0 ? 1 : 0) + (wpisywanie > 0 ? 1 : 0) + (bezPodpisu > 0 ? 1 : 0);
+    if (ile === 0) return null;
+    if (ile > 1) return 'mieszane';
+    if (wybor > 0) return 'wybor';
+    if (wpisywanie > 0) return 'wpisywanie';
+    return null;   // sam `bezPodpisu` — znamy wynik, nie znamy trybu
+  }
+
+  const BEZ_SPOSOBU = 'starsze wyniki';
+
+  function opisSposobu(wybor, wpisywanie, bezPodpisu) {
+    const czesci = [];
+    if (wybor > 0) czesci.push(NAZWY_TRYBOW_ODPOWIEDZI.wybor + ': ' + wybor);
+    if (wpisywanie > 0) czesci.push(NAZWY_TRYBOW_ODPOWIEDZI.wpisywanie + ': ' + wpisywanie);
+    if (bezPodpisu > 0) czesci.push(BEZ_SPOSOBU + ': ' + bezPodpisu);
+    if (!czesci.length) return '—';
+    // Jedno źródło — sama nazwa wystarczy, liczba dubluje kolumnę „Wynik".
+    if (czesci.length === 1) {
+      if (bezPodpisu > 0) return BEZ_SPOSOBU;
+      return wybor > 0 ? NAZWY_TRYBOW_ODPOWIEDZI.wybor : NAZWY_TRYBOW_ODPOWIEDZI.wpisywanie;
+    }
+    return 'mieszane (' + czesci.join(' · ') + ')';
   }
 
   function formatujDate(iso) {
@@ -772,13 +831,20 @@
     if (ang.some((g) => g.wszystkie)) {
       html += '<h3>Angielski: powtórka a nowy materiał</h3>' +
         '<table class="tabela-postepy"><thead><tr>' +
-        '<th>Materiał</th><th>Wynik</th><th>Procent</th>' +
+        // Kolumna „Jak odpowiadał" jest tu po to, żeby procentów nie dało się
+        // porównać na ślepo: wybór z czterech daje z natury wyższy wynik niż
+        // wpisywanie, a tryb jest teraz pamiętany między rundami, więc syn może
+        // siedzieć w łatwiejszym od tygodnia i nic by tego nie zdradziło.
+        '<th>Materiał</th><th>Wynik</th><th>Procent</th><th>Jak odpowiadał</th>' +
         '</tr></thead><tbody>' +
         ang.map((g) =>
           '<tr><td>' + esc(g.nazwa) + '</td>' +
           '<td>' + (g.wszystkie ? g.poprawne + ' / ' + g.wszystkie : '—') + '</td>' +
-          komorkaProcent(g.procent) + '</tr>').join('') +
-        '</tbody></table>';
+          komorkaProcent(g.procent) +
+          '<td class="td-sposob">' + esc(g.opisSposobu) + '</td></tr>').join('') +
+        '</tbody></table>' +
+        '<p class="podtytul">Wybór z czterech jest łatwiejszy niż wpisywanie — ' +
+        'procenty z różnych trybów nie są porównywalne wprost.</p>';
     }
 
     const bledy = (stat.najczestszeBledy || []).filter((b) => b && b.bledy > 0);
@@ -926,6 +992,7 @@
     TRYBY_ODPOWIEDZI, domyslnyTrybOdpowiedzi, rozdzialyAngielski, modulAngielski,
     naglowekRozdzialow, brakMaterialu, odznakaDla,
     ustawTrybOdpowiedzi, trybOdpowiedziDla, opisAktualnegoTrybu,
+    rodzajSposobu, opisSposobu, BEZ_SPOSOBU,
   };
   if (typeof window !== 'undefined') {
     window.GRA = window.GRA || {};

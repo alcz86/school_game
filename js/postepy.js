@@ -13,8 +13,18 @@
   const KLUCZ_TRYBY = 'gra-szkolna-tryb-odpowiedzi';
   const DOZWOLONE_TRYBY = ['wybor', 'wpisywanie'];
 
+  // `sposoby` (dopisane 2026-09-08) trzyma, ILOMA odpowiedziami dziecko dorobiło się
+  // wyniku w danym zestawie i w JAKIM sposobie odpowiadania (wybór z czterech /
+  // wpisywanie). Kształt: { "<tryb>|<zestaw>": { wybor: n, wpisywanie: n } }.
+  //
+  // To osobna gałąź stanu, a NIE nowe pole w `odpowiedzi[k]`, właśnie ze względu na
+  // stare zapisy: postępy syna sprzed tej zmiany nie mają tu ani jednego licznika,
+  // więc suma liczników bywa MNIEJSZA niż `wszystkie`. Ta różnica jest informacją
+  // („część wyników jest sprzed zapisywania sposobu"), a nie błędem — ekran rodzica
+  // pokazuje ją wprost zamiast zgadywać. Gdyby pole siedziało w `odpowiedzi[k]`,
+  // stary wpis trzeba by domyślnie czymś wypełnić, czyli zmyślić.
   function pustyStan() {
-    return { odpowiedzi: {}, bledy: {}, walki: [], dni: [] };
+    return { odpowiedzi: {}, bledy: {}, walki: [], dni: [], sposoby: {} };
   }
 
   function utworz(magazyn) {
@@ -37,6 +47,9 @@
           bledy: jestObiektem(s.bledy) ? s.bledy : domyslny.bledy,
           walki: Array.isArray(s.walki) ? s.walki : domyslny.walki,
           dni: Array.isArray(s.dni) ? s.dni : domyslny.dni,
+          // Ta sama obrona co dla pozostałych gałęzi: brak pola (stary wpis) i pole
+          // uszkodzone (tablica, string, null) dają pusty obiekt, nie wyjątek.
+          sposoby: jestObiektem(s.sposoby) ? s.sposoby : domyslny.sposoby,
         };
       } catch (e) {
         return pustyStan();
@@ -64,7 +77,12 @@
     // tym większe zawyżenie — czyli błąd był największy tam, gdzie ekran ma
     // znaczenie). Dlatego licznik `odpowiedzi` rusza się tylko przy pierwszym
     // podejściu, a `bledy` (karmiące wagi) — zawsze.
-    function zapiszOdpowiedz(tryb, zestaw, idPytania, poprawna, pierwszePodejscie) {
+    // `sposob` (6. argument, opcjonalny) to sposób odpowiadania: 'wybor' albo
+    // 'wpisywanie'. Liczymy go WYŁĄCZNIE przy pierwszym podejściu — dokładnie na tym
+    // samym mianowniku co `wszystkie`, żeby „12 z wpisywania" dało się zestawić
+    // z „12 odpowiedzi" bez przeliczania. Wartość spoza listy i brak wartości
+    // (matematyka, ortografia, stare wywołania) nie zapisują niczego.
+    function zapiszOdpowiedz(tryb, zestaw, idPytania, poprawna, pierwszePodejscie, sposob) {
       const stan = wczytaj();
       const k = klucz(tryb, zestaw, idPytania);
       const pierwsze = pierwszePodejscie === undefined ? true : !!pierwszePodejscie;
@@ -73,6 +91,12 @@
         wpis.wszystkie += 1;
         if (poprawna) wpis.poprawne += 1;
         stan.odpowiedzi[k] = wpis;
+        if (DOZWOLONE_TRYBY.indexOf(sposob) >= 0) {
+          const ks = tryb + '|' + zestaw;
+          const s = stan.sposoby[ks] || { wybor: 0, wpisywanie: 0 };
+          s[sposob] = (s[sposob] || 0) + 1;
+          stan.sposoby[ks] = s;
+        }
       }
       if (!poprawna) stan.bledy[k] = (stan.bledy[k] || 0) + 1;
       oznaczDzien(stan);
@@ -153,8 +177,24 @@
         .sort((a, b) => (b.proby - a.proby) || (b.bledy - a.bledy))
         .slice(0, 10);
 
+      // `sposoby` wychodzą w tym samym kształcie co `tryby`: sposoby[tryb][zestaw].
+      // Klucz w magazynie jest płaski ("angielski|klasa3-unit1"), bo tam liczy się
+      // prostota zapisu; ekran rodzica woli dwa piętra, tak jak przy skuteczności.
+      // Liczniki są kopiowane, żeby wywołujący nie mógł zmutować magazynu.
+      const sposoby = {};
+      for (const k of Object.keys(stan.sposoby)) {
+        const [tryb, zestaw] = k.split('|');
+        const s = stan.sposoby[k] || {};
+        sposoby[tryb] = sposoby[tryb] || {};
+        sposoby[tryb][zestaw] = {
+          wybor: s.wybor || 0,
+          wpisywanie: s.wpisywanie || 0,
+        };
+      }
+
       return {
         tryby,
+        sposoby,
         najczestszeBledy,
         mylonePozycje: wszystkieMylone.length,
         zawszeMylone,

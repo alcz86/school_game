@@ -27,6 +27,15 @@
         { wyraz: 'ratunek',  luka: 3, poprawny: 'u', zasada: 'końcówka -unek zawsze przez u: rysunek, ratunek' },
         { wyraz: 'babunia',  luka: 3, poprawny: 'u', zasada: 'końcówka -unia zawsze przez u: babunia, mamunia' },
         { wyraz: 'maluje',   luka: 3, poprawny: 'u', zasada: 'końcówka -uje zawsze przez u: maluje, rysuje, pracuje' },
+        // Dopisane 2026-09-08 (prośba matki o wyrazy z codziennego słownika).
+        // Zły wariant sprawdzony ręcznie: muwić, pokuj, wrucić, ósta, kórtka,
+        // pracóje — żadne z nich nie jest polskim słowem.
+        { wyraz: 'mówić',    luka: 1, poprawny: 'ó', zasada: 'ó wymienia się na o: mówić — mowa, rozmowa' },
+        { wyraz: 'pokój',    luka: 3, poprawny: 'ó', zasada: 'ó wymienia się na o: pokój — pokoje, pokoik' },
+        { wyraz: 'wrócić',   luka: 2, poprawny: 'ó', zasada: 'ó wymienia się na a: wrócić — wracać' },
+        { wyraz: 'usta',     luka: 0, poprawny: 'u', zasada: 'na początku wyrazu piszemy u (poza: ósemka, ósmy)' },
+        { wyraz: 'kurtka',   luka: 1, poprawny: 'u', zasada: 'u się nie wymienia — trzeba zapamiętać: kurtka, kurteczka' },
+        { wyraz: 'pracuje',  luka: 4, poprawny: 'u', zasada: 'końcówka -uje zawsze przez u: maluje, rysuje, pracuje' },
       ],
     },
     {
@@ -62,6 +71,15 @@
         { wyraz: 'żyrafa',    luka: 0, poprawny: 'ż',  zasada: 'ż się tu nie wymienia — trzeba zapamiętać: żyrafa, żyrafka' },
         { wyraz: 'żółty',     luka: 0, poprawny: 'ż',  zasada: 'ż się tu nie wymienia — trzeba zapamiętać: żółty, żółtko' },
         { wyraz: 'każdy',     luka: 2, poprawny: 'ż',  zasada: 'ż się tu nie wymienia — trzeba zapamiętać: każdy, każda' },
+        // Dopisane 2026-09-08. Zły wariant sprawdzony ręcznie w KAŻDYM z nich:
+        // wżesień, ożeł, pżyjaciel, łyrzka, rzołnierz, kolerzanka — żadne nie
+        // jest polskim słowem. To ten sam test, na którym poległo kiedyś `morze`.
+        { wyraz: 'wrzesień',   luka: 1, poprawny: 'rz', zasada: 'po spółgłosce w piszemy rz: wrzesień, wrzos' },
+        { wyraz: 'orzeł',      luka: 1, poprawny: 'rz', zasada: 'rz wymienia się na r: orzeł — orła, orlik' },
+        { wyraz: 'przyjaciel', luka: 1, poprawny: 'rz', zasada: 'po spółgłosce p piszemy rz: przyjaciel, przerwa' },
+        { wyraz: 'łyżka',      luka: 2, poprawny: 'ż',  zasada: 'ż się tu nie wymienia — trzeba zapamiętać: łyżka, łyżeczka' },
+        { wyraz: 'żołnierz',   luka: 0, poprawny: 'ż',  zasada: 'ż się tu nie wymienia — trzeba zapamiętać: żołnierz, żołnierski' },
+        { wyraz: 'koleżanka',  luka: 4, poprawny: 'ż',  zasada: 'ż wymienia się na g: koleżanka — kolega' },
       ],
     },
     {
@@ -90,6 +108,14 @@
         { wyraz: 'hałas',    luka: 0, poprawny: 'h',  zasada: 'h trzeba zapamiętać — hałas, hałasować' },
         { wyraz: 'huśtawka', luka: 0, poprawny: 'h',  zasada: 'h trzeba zapamiętać — huśtawka, huśtać' },
         { wyraz: 'bohater',  luka: 2, poprawny: 'h',  zasada: 'h trzeba zapamiętać — bohater, bohaterski' },
+        // Dopisane 2026-09-08. Zły wariant: homik, hodzić, duh, chistoria,
+        // chipopotam, chumor — żadne nie jest polskim słowem.
+        { wyraz: 'chomik',     luka: 0, poprawny: 'ch', zasada: 'ch trzeba tu zapamiętać: chomik, chomiczek' },
+        { wyraz: 'chodzić',    luka: 0, poprawny: 'ch', zasada: 'ch trzeba tu zapamiętać: chodzić, chodnik, chód' },
+        { wyraz: 'duch',       luka: 2, poprawny: 'ch', zasada: 'na końcu wyrazu piszemy ch: duch, dach, ruch' },
+        { wyraz: 'historia',   luka: 0, poprawny: 'h',  zasada: 'h trzeba zapamiętać — wyraz przyszedł do nas z innego języka' },
+        { wyraz: 'hipopotam',  luka: 0, poprawny: 'h',  zasada: 'h trzeba zapamiętać — wyraz przyszedł do nas z innego języka' },
+        { wyraz: 'humor',      luka: 0, poprawny: 'h',  zasada: 'h trzeba zapamiętać — wyraz przyszedł do nas z innego języka' },
       ],
     },
     // ------------------------------------------------------------------
@@ -239,6 +265,33 @@
         { wyraz: 'idź',          luka: 1, poprawny: 'dź', warianty: ['dź', 'dzi'],  zasada: 'na końcu wyrazu piszemy dź: idź' },
         { wyraz: 'jedź',         luka: 2, poprawny: 'dź', warianty: ['dź', 'dzi'],  zasada: 'na końcu wyrazu piszemy dź: jedź' },
         { wyraz: 'wejdź',        luka: 3, poprawny: 'dź', warianty: ['dź', 'dzi'],  zasada: 'na końcu wyrazu piszemy dź: wejdź' },
+        // --- liczebniki (dopisane 2026-09-08 na prośbę matki) ---
+        //
+        // ŚWIADOME OGRANICZENIE, znane i zaakceptowane przez matkę.
+        // Najczęstszy realny błąd w tych wyrazach to *sześdziesiąt* i *pięcdziesiąt*
+        // — zgubione albo przestawione `ć`. Gra ma tylko parę przycisków `ć`/`ci`,
+        // więc ćwiczy WYBÓR między tymi dwiema formami, a nie samo istnienie `ć`.
+        // Łapiemy więc drugą połowę problemu: `dzi` w `sześćdziesiąt` i `ś`
+        // w `sześćset`. NIE dorabiać tu trzeciego przycisku („brak litery") —
+        // to osobna decyzja, której matka jeszcze nie podjęła.
+        //
+        // Zły wariant sprawdzony ręcznie w każdym wpisie: sześćdźesiąt, szesićset,
+        // pięćdźesiąt, dziewięcidziesiąt, dźewięćset, dziewiętnasicie, trzydźeści,
+        // czterdziesici, tyśąc — żadne nie jest polskim słowem.
+        //
+        // ODRZUCONE: `pięćset` i `dziewięćset` z luką na `ć` — zły wariant daje
+        // `pięciset` / `dziewięciset`, o włos od prawdziwych form dopełniacza
+        // `pięciuset` / `dziewięciuset`. `dziewięćset` uratowane przez przeniesienie
+        // luki na początkowe `dzi`. `dziesięć` i `dziewięć` już są wyżej na liście.
+        { wyraz: 'sześćdziesiąt',    luka: 5,  poprawny: 'dzi', warianty: ['dź', 'dzi'], zasada: 'przed samogłoską piszemy dzi: dzi + e — sześćdziesiąt' },
+        { wyraz: 'pięćdziesiąt',     luka: 4,  poprawny: 'dzi', warianty: ['dź', 'dzi'], zasada: 'przed samogłoską piszemy dzi: dzi + e — pięćdziesiąt' },
+        { wyraz: 'trzydzieści',      luka: 4,  poprawny: 'dzi', warianty: ['dź', 'dzi'], zasada: 'przed samogłoską piszemy dzi: dzi + e — trzydzieści' },
+        { wyraz: 'dziewięćset',      luka: 0,  poprawny: 'dzi', warianty: ['dź', 'dzi'], zasada: 'przed samogłoską piszemy dzi: dzi + e — dziewięćset' },
+        { wyraz: 'sześćset',         luka: 3,  poprawny: 'ś',   warianty: ['ś', 'si'],   zasada: 'przed spółgłoską piszemy ś: ś + ć — sześćset' },
+        { wyraz: 'dziewiętnaście',   luka: 10, poprawny: 'ś',   warianty: ['ś', 'si'],   zasada: 'przed spółgłoską piszemy ś: ś + c — dziewiętnaście' },
+        { wyraz: 'czterdzieści',     luka: 9,  poprawny: 'ś',   warianty: ['ś', 'si'],   zasada: 'przed spółgłoską piszemy ś: ś + c — czterdzieści' },
+        { wyraz: 'tysiąc',           luka: 2,  poprawny: 'si',  warianty: ['ś', 'si'],   zasada: 'przed samogłoską piszemy si: si + ą — tysiąc' },
+        { wyraz: 'dziewięćdziesiąt', luka: 7,  poprawny: 'ć',   warianty: ['ć', 'ci'],   zasada: 'przed spółgłoską piszemy ć: ć + d — dziewięćdziesiąt' },
       ],
     },
   ];

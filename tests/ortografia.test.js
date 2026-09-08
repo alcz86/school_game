@@ -282,6 +282,32 @@ test('zmiekczenia: zasada pozycyjna — dwuznak przed samogloska, kreska przed s
   }
 });
 
+test('liczebniki sa w zestawie zmiekczen i ucza czegos innego niz `ć` w `sześć`', () => {
+  // Dopisane 2026-09-08 na prosbe matki. Kazdy z tych wyrazow ma byc w zestawie
+  // i miec luke NIE na koncowce `-ć` liczebnika `sześć`/`pięć` w izolacji, tylko
+  // na `dzi` / `ś` / `si` / `ć` wewnatrz zlozenia — czyli tam, gdzie regula
+  // pozycyjna faktycznie cos rozstrzyga.
+  const z = o.ZESTAWY.find((x) => x.id === 'zmiekczenia');
+  const nazwy = z.wyrazy.map((w) => w.wyraz);
+  const LICZEBNIKI = [
+    'sześćdziesiąt', 'pięćdziesiąt', 'trzydzieści', 'czterdzieści', 'dziewiętnaście',
+    'sześćset', 'dziewięćset', 'dziewięćdziesiąt', 'tysiąc',
+  ];
+  for (const l of LICZEBNIKI) assert.ok(nazwy.includes(l), `brak liczebnika "${l}"`);
+  assert.ok(LICZEBNIKI.length >= 8 && LICZEBNIKI.length <= 12, 'poza uzgodnionym zakresem 8-12');
+
+  // ODRZUCONE SWIADOMIE — zly wariant daje forme o wlos od prawdziwego dopelniacza
+  // (`pięciuset`, `dziewięciuset`). Test pilnuje, zeby nie wrocily przy nastepnej
+  // partii wyrazow, tak jak pilnuje `morze` w zestawie rz/z.
+  for (const w of z.wyrazy) {
+    if (w.wyraz !== 'pięćset' && w.wyraz !== 'dziewięćset') continue;
+    const zly = w.warianty.find((v) => v !== w.poprawny);
+    const forma = w.wyraz.slice(0, w.luka) + zly + w.wyraz.slice(w.luka + w.poprawny.length);
+    assert.ok(!['pięciset', 'dziewięciset'].includes(forma),
+      `"${w.wyraz}" ze zlym wariantem daje "${forma}" — mylnie bliskie formie "${forma.replace('ci', 'ciu')}"`);
+  }
+});
+
 test('generuj dla nieznanego zestawu zwraca pustą tablicę', () => {
   assert.deepStrictEqual(o.generuj('nie-ma-takiego', 5), []);
 });

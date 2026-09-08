@@ -197,6 +197,9 @@ h1 { font-size: clamp(1.75rem, 7vw, 2.5rem); text-align: center; margin: .5rem 0
 .td-procent { font-weight: 700; text-align: right; white-space: nowrap; }
 .procent-slaby { color: var(--zle); }
 .td-brak { font-weight: 400; opacity: .55; }
+/* „Jak odpowiadał" — kolumna kontekstowa, nie wynik. Mniejsza i przygaszona,
+   żeby przy 320 px nie konkurowała z procentem, który jest tu główną liczbą. */
+.td-sposob { font-size: .85rem; opacity: .8; }
 .td-pozycja { font-weight: 700; font-size: 1.05rem; }
 .td-skad { opacity: .7; font-size: .85rem; }
 .td-bledy { text-align: right; font-weight: 700; color: var(--zle); white-space: nowrap; }
