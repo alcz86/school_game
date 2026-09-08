@@ -27,7 +27,7 @@
     if (stan.skonczona || !stan.aktualne) return stan;
 
     const oczekiwana = stan.aktualne.odpowiedz;
-    const poprawna = rowne(odpowiedzGracza, oczekiwana);
+    const poprawna = pasuje(odpowiedzGracza, stan.aktualne);
     const nowy = Object.assign({}, stan, { kolejka: stan.kolejka.slice(), pula: stan.pula.slice() });
 
     if (poprawna) {
@@ -71,8 +71,39 @@
     return nowy;
   }
 
+  // Wszystkie znaki, które klawiatura potrafi wstawić w miejsce apostrofu.
+  // iOS i Android DOMYŚLNIE zamieniają prosty apostrof U+0027 na typograficzny
+  // U+2019 — na ekranie oba wyglądają identycznie, więc dziecko wpisujące
+  // "aren’t" na tablecie widziało odrzuconą odpowiedź bez żadnej wskazówki,
+  // co jest źle. Siedem zdań w materiale ma apostrof w poprawnej odpowiedzi.
+  const APOSTROFY = /[’‘`´ʼ‛]/g;
+
+  // Formy rozwinięte i skrócone to TO SAMO poprawne zdanie po angielsku —
+  // dziecko może napisać którąkolwiek. Sprowadzamy obie strony porównania
+  // do formy rozwiniętej (a nie skróconej), bo "cannot" i "can not" też
+  // muszą trafić w to samo miejsce co "can't".
+  //
+  // Lista jest CELOWO zamknięta: tylko czasowniki posiłkowe i modalne, które
+  // faktycznie występują w materiale klasy 3. Uogólnianie regexem po każdym
+  // "n't" zaczęłoby sklejać formy, których gra nie uczy.
+  const SKROTY = [
+    [/\bcannot\b/g, 'can not'],
+    [/\bcan't\b/g, 'can not'],
+    [/\baren't\b/g, 'are not'],
+    [/\bisn't\b/g, 'is not'],
+    [/\bdon't\b/g, 'do not'],
+    [/\bdoesn't\b/g, 'does not'],
+    [/\bhaven't\b/g, 'have not'],
+    [/\bhasn't\b/g, 'has not'],
+  ];
+
   function normalizuj(v) {
-    return String(v == null ? '' : v).trim().toLowerCase();
+    let s = String(v == null ? '' : v).toLowerCase().replace(APOSTROFY, "'");
+    // Wielokrotne i nietypowe białe znaki w środku ("are  not") sprowadzamy
+    // do jednej spacji — inaczej rozwinięcie skrótu nie trafiłoby w wzorzec.
+    s = s.replace(/\s+/g, ' ').trim();
+    for (const [wzorzec, forma] of SKROTY) s = s.replace(wzorzec, forma);
+    return s;
   }
 
   // Porównanie liczbowe TYLKO wtedy, gdy obie strony to czyste ciągi cyfr.
@@ -92,7 +123,27 @@
     return x === y;
   }
 
-  const api = { mnoznikCombo, nowaWalka, odpowiedz, rowne };
+  // Część zdań w materiale ma DWIE poprawne odpowiedzi w trybie wpisywania.
+  // "My sister and I ____ scared." przyjmuje i "aren't" (wersja z podręcznika),
+  // i "are" — bez obrazka nic w zdaniu nie rozstrzyga, o którą formę chodzi.
+  // Cztery recenzje tego nie złapały, bo sprawdzały tylko, czy któryś
+  // z DYSTRAKTORÓW nie jest drugą poprawną odpowiedzią; w trybie wpisywania
+  // dystraktorów nie ma i nic nie zawęża pola.
+  //
+  // Dodatkowe formy siedzą w `takze_poprawne` przy zdaniu i są używane
+  // WYŁĄCZNIE do oceniania — na liście czterech przycisków się nie pojawiają.
+  // Pole jest opcjonalne i domyślnie puste: akceptowanie zbyt szerokie
+  // chwaliłoby błąd, więc dopisujemy je tylko tam, gdzie zdanie naprawdę
+  // nie rozstrzyga (np. "It ____ expensive, it's cheap." zostaje bez niego).
+  function pasuje(odpowiedzGracza, pytanie) {
+    if (!pytanie) return false;
+    if (rowne(odpowiedzGracza, pytanie.odpowiedz)) return true;
+    const alternatywy = pytanie.takze_poprawne;
+    if (!Array.isArray(alternatywy)) return false;
+    return alternatywy.some((a) => rowne(odpowiedzGracza, a));
+  }
+
+  const api = { mnoznikCombo, nowaWalka, odpowiedz, rowne, normalizuj, pasuje };
   if (typeof window !== 'undefined') {
     window.GRA = window.GRA || {};
     window.GRA.walka = api;

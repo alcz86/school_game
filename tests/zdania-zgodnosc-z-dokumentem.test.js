@@ -154,6 +154,54 @@ test('pole po polu: odpowiedź, dystraktory, wyjaśnienie i unit zgadzają się 
   }
 });
 
+// ---------------------------------------------------------------------------
+// POLE `takze_poprawne` — świadomie POZA dokumentem
+//
+// Dokument opisuje to, co stoi w podręczniku: jedno zdanie, jedna poprawna
+// odpowiedź, trzy dystraktory. `takze_poprawne` nie jest treścią z podręcznika,
+// tylko decyzją o OCENIANIU w trybie wpisywania (2026-09-08): tam, gdzie samo
+// zdanie nie rozstrzyga między formą twierdzącą a przeczącą, obie są poprawne.
+// Dlatego pola nie ma w dokumentach i test nie może go wymagać.
+//
+// Żeby to zwolnienie nie stało się dziurą, poniżej pilnujemy DWÓCH rzeczy:
+// pole ma dopuszczalny kształt, i żadne INNE nowe pole nie przemyka się
+// niezauważone obok porównania z dokumentem.
+// ---------------------------------------------------------------------------
+
+const POLA_Z_DOKUMENTU = ['zdanie', 'odpowiedz', 'dystraktory', 'wyjasnienie', 'unit'];
+const POLA_TYLKO_W_GRZE = ['takze_poprawne'];
+
+test('zdania w grze nie mają pól spoza dokumentu — poza jawnie dozwolonymi', () => {
+  const dozwolone = new Set(POLA_Z_DOKUMENTU.concat(POLA_TYLKO_W_GRZE));
+  for (const z of wGrze) {
+    for (const pole of Object.keys(z)) {
+      assert.ok(dozwolone.has(pole),
+        `zdanie "${z.zdanie}" ma nieznane pole "${pole}". Jeśli to treść z podręcznika, ` +
+        'musi wejść do dokumentu i do porównania pole-po-polu; jeśli to decyzja o ocenianiu, ' +
+        'dopisz je do POLA_TYLKO_W_GRZE razem z uzasadnieniem.');
+    }
+    for (const pole of POLA_Z_DOKUMENTU) {
+      assert.ok(pole in z, `zdanie "${z.zdanie}" nie ma pola "${pole}"`);
+    }
+  }
+});
+
+test('takze_poprawne ma poprawny kształt i nie podmienia odpowiedzi z dokumentu', () => {
+  for (const z of wGrze) {
+    if (!('takze_poprawne' in z)) continue;
+    assert.ok(Array.isArray(z.takze_poprawne) && z.takze_poprawne.length > 0,
+      `"${z.zdanie}": takze_poprawne musi być niepustą tablicą`);
+    for (const alt of z.takze_poprawne) {
+      assert.strictEqual(typeof alt, 'string', `"${z.zdanie}": alternatywa musi być tekstem`);
+      assert.ok(alt.trim() !== '', `"${z.zdanie}": pusta alternatywa`);
+      assert.notStrictEqual(alt, z.odpowiedz,
+        `"${z.zdanie}": alternatywa powtarza odpowiedź z dokumentu`);
+      assert.ok(!z.dystraktory.includes(alt),
+        `"${z.zdanie}": "${alt}" jest jednocześnie alternatywą i dystraktorem`);
+    }
+  }
+});
+
 test('liczby się zgadzają: 44 z partii 1 + 45 z partii 2 = 89 zdań w grze', () => {
   const partia1 = parsujDokument(DOKUMENTY[0]);
   const partia2 = parsujDokument(DOKUMENTY[1]);

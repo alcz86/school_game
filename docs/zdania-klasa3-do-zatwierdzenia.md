@@ -29,7 +29,7 @@ unit: 1 | strona 9
 zdanie:      My sister and I ____ scared.
 poprawnie:   aren't
 dystraktory: isn't · am not · hasn't
-wyjasnienie: "My sister and I" to "we" - liczba mnoga, więc "are" / "aren't".
+wyjasnienie: "My sister and I" to "we" - liczba mnoga, więc "are". Przeczenie od "are" to "aren't" - tu pasują obie formy.
 sprawdzenie: pozostale formy nie lacza sie z podmiotem mnogim
 ```
 
@@ -118,7 +118,7 @@ unit: 3 | strona 33
 zdanie:      It ____ expensive but it is cool.
 poprawnie:   isn't
 dystraktory: aren't · am not · doesn't
-wyjasnienie: Przy "it" przeczenie od "is" to "isn't".
+wyjasnienie: Przy "it" mówimy "is", a przeczenie to "isn't" - w tym zdaniu pasują obie formy.
 sprawdzenie: aren't/am not/doesn't po "it" przed przymiotnikiem - niepoprawne
 ```
 
@@ -390,7 +390,7 @@ unit: 8 | strona 75
 zdanie:      He ____ kayaking.
 poprawnie:   isn't
 dystraktory: aren't · am not · doesn't
-wyjasnienie: Przeczenie przy "he" w tym czasie to "isn't" + -ing.
+wyjasnienie: Przy "he" mówimy "is" + -ing, a przeczenie to "isn't" - tu pasują obie formy.
 sprawdzenie: he aren't / am not / doesn't kayaking - wszystkie niepoprawne
 ```
 

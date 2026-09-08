@@ -359,7 +359,7 @@ unit: 7 | strona 69
 zdanie:      I ____ got a helmet on my head.
 poprawnie:   haven't
 dystraktory: hasn't · isn't · aren't
-wyjasnienie: Przeczenie od "I have got" to "I haven't got".
+wyjasnienie: Przy "I" mówimy "have got", a przeczenie to "haven't got" - tu pasują obie formy.
 sprawdzenie: I hasn't got / isn't got / aren't got - niegramatyczne
 ```
 
