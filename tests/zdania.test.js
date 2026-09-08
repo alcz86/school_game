@@ -13,7 +13,9 @@ const unitPo = new Map(ZESTAW.zdania.map((s) => [s.zdanie, s.unit]));
 test('istnieje zestaw zdania-klasa3 z rozdziałami 1-8, każdy niepusty', () => {
   assert.ok(ZESTAW, 'brak zestawu zdania-klasa3');
   assert.strictEqual(ZESTAW.klasa, 3);
-  assert.strictEqual(ZESTAW.zdania.length, 46, 'zatwierdzono 46 zdań');
+  // 44 z partii 1 (46 przepisanych minus dwa Phonics Fun bez orzeczenia)
+  // + 45 z partii 2 (46 przepisanych minus „toothache", którego nie ma w podręczniku).
+  assert.strictEqual(ZESTAW.zdania.length, 89, 'zatwierdzono 89 zdań: 44 z partii 1 + 45 z partii 2');
   assert.deepStrictEqual(z.rozdzialy('zdania-klasa3'), [1, 2, 3, 4, 5, 6, 7, 8]);
   for (let u = 1; u <= 8; u++) {
     assert.ok(ZESTAW.zdania.some((s) => s.unit === u), `rozdział ${u} jest pusty`);
@@ -24,6 +26,23 @@ test('zdanie o płaszczu nie zostało dopisane — nie ma go w podręczniku', ()
   // Matka potwierdziła, że tego zdania w książce nie ma. Gdyby ktoś je dopisał
   // „bo pasuje do Present Continuous", dziecko uczyłoby się materiału spoza szkoły.
   assert.ok(!ZESTAW.zdania.some((s) => /coat in winter/i.test(s.zdanie)));
+});
+
+test('każda pozycja jest ZDANIEM — ma podmiot i orzeczenie, nie sam fragment rymowanki', () => {
+  // Recenzja 2026-09-08: dwie pozycje Phonics Fun z unitu 1 („An unhappy uncle ____
+  // an umbrella.", „A happy man with a map ____ his lap.") nie miały orzeczenia —
+  // żadna z czterech opcji nie tworzyła pełnego zdania, a wyjaśnienie dopowiadało
+  // czasownik, którego dziecko w zdaniu nie widziało. Zostały usunięte.
+  for (const frag of ['unhappy uncle', 'with a map']) {
+    assert.ok(!ZESTAW.zdania.some((s) => s.zdanie.toLowerCase().includes(frag)),
+      `fragment bez orzeczenia wrócił do zestawu: "${frag}"`);
+  }
+});
+
+test('zdanie z rekonstruowanym słowem (toothache) nie weszło do gry', () => {
+  // W podręczniku stoi tam kolorowy prostokąt zamiast słowa — rzeczownik był
+  // domysłem autora partii 2, a nie przepisaniem. Matka wyłączyła tę pozycję.
+  assert.ok(!ZESTAW.zdania.some((s) => /toothache/i.test(s.zdanie)));
 });
 
 test('każde zdanie ma dokładnie jedno miejsce na lukę', () => {

@@ -2,7 +2,14 @@
 
 Źródło: album Google Photos „ANGIELSKI 3" (94 zdjęcia podręcznika).
 Numery stron = numery wydrukowane na stronie podręcznika.
-**Status: w trakcie budowania — plik dopisywany przyrostowo.**
+**Status: zatwierdzone. Materiał wdrożony w `dane/zdania.js`.**
+
+> **Dwie pozycje NIE weszły do gry** (decyzja po recenzji, 2026-09-08): „An unhappy uncle ____ an umbrella."
+> i „A happy man with a map ____ his lap." — to fragmenty rymowanki Phonics Fun bez orzeczenia,
+> więc żadna z czterech opcji nie tworzy pełnego zdania. Reszta partii (44 pozycje) jest w grze.
+>
+> Zgodność dokumentu z danymi pilnuje `tests/zdania-zgodnosc-z-dokumentem.test.js` — pole po polu.
+> Wyjaśnienia zapisano poprawną polszczyzną z diakrytykami; dokument i dane muszą być identyczne.
 
 ---
 
@@ -13,7 +20,7 @@ unit: 1 | strona 9
 zdanie:      Mark is ten years old. He ____ elderly.
 poprawnie:   isn't
 dystraktory: aren't · am not · haven't
-wyjasnienie: Przy "he" uzywamy "is", a przeczenie to "isn't".
+wyjasnienie: Przy "he" używamy "is", a przeczenie to "isn't".
 sprawdzenie: "he aren't" / "he am not" / "he haven't elderly" - wszystkie niegramatyczne
 ```
 
@@ -22,7 +29,7 @@ unit: 1 | strona 9
 zdanie:      My sister and I ____ scared.
 poprawnie:   aren't
 dystraktory: isn't · am not · hasn't
-wyjasnienie: "My sister and I" to "we" - liczba mnoga, wiec "are" / "aren't".
+wyjasnienie: "My sister and I" to "we" - liczba mnoga, więc "are" / "aren't".
 sprawdzenie: pozostale formy nie lacza sie z podmiotem mnogim
 ```
 
@@ -31,7 +38,7 @@ unit: 1 | strona 9
 zdanie:      My grandma and grandpa ____ in the museum.
 poprawnie:   are
 dystraktory: is · am · be
-wyjasnienie: Dwie osoby = liczba mnoga, wiec "are".
+wyjasnienie: Dwie osoby = liczba mnoga, więc "are".
 sprawdzenie: is/am/be po podmiocie mnogim sa niepoprawne
 ```
 
@@ -62,7 +69,7 @@ unit: 2 | strona 17
 zdanie:      Tom ____ got a fever.
 poprawnie:   has
 dystraktory: have · is · are
-wyjasnienie: Przy he/she/it (Tom) mowimy "has got", nie "have got".
+wyjasnienie: Przy he/she/it (Tom) mówimy "has got", nie "have got".
 sprawdzenie: "Tom have got" / "Tom is got" / "Tom are got" - niegramatyczne
 ```
 
@@ -80,7 +87,7 @@ unit: 2 | strona 17
 zdanie:      I love Saturdays ____ my family and friends.
 poprawnie:   with
 dystraktory: to · at · of
-wyjasnienie: "with" = z (kims). Spedzam sobote z rodzina.
+wyjasnienie: "with" = z (kimś). Spędzam sobotę z rodziną.
 sprawdzenie: to/at/of my family po "Saturdays" nie daje sensownego zdania
 ```
 
@@ -102,7 +109,7 @@ unit: 3 | strona 33
 zdanie:      I ____ play computer games.
 poprawnie:   can
 dystraktory: cans · to can · am
-wyjasnienie: "can" = umiem/moge, i nigdy nie dostaje koncowki -s.
+wyjasnienie: "can" = umiem/mogę, i nigdy nie dostaje końcówki -s.
 sprawdzenie: cans/to can/am przed "play" sa niegramatyczne
 ```
 
@@ -120,7 +127,7 @@ unit: 3 | strona 33
 zdanie:      Kate ____ got a laptop.
 poprawnie:   has
 dystraktory: have · is · are
-wyjasnienie: Kate = she, wiec "has got".
+wyjasnienie: Kate = she, więc "has got".
 sprawdzenie: have/is/are z "got" po "Kate" - niegramatyczne
 ```
 
@@ -129,7 +136,7 @@ unit: 3 | strona 33
 zdanie:      Ben can play games ____ his dad.
 poprawnie:   with
 dystraktory: to · at · of
-wyjasnienie: "with" = z. Gra razem z tata.
+wyjasnienie: "with" = z. Gra razem z tatą.
 sprawdzenie: play games to/at/of his dad - zadne nie jest poprawne
 ```
 
@@ -151,7 +158,7 @@ unit: 4 | strona 42
 zdanie:      My aunt ____ rice for dinner.
 poprawnie:   likes
 dystraktory: like · liking · to like
-wyjasnienie: Przy he/she/it (my aunt) czasownik dostaje koncowke -s: likes.
+wyjasnienie: Przy he/she/it (my aunt) czasownik dostaje końcówkę -s: likes.
 sprawdzenie: like/liking/to like po "my aunt" sa niegramatyczne
 ```
 
@@ -160,7 +167,7 @@ unit: 4 | strona 42
 zdanie:      I always ____ my dog in the morning.
 poprawnie:   walk
 dystraktory: walks · walking · to walk
-wyjasnienie: Przy "I" czasownik jest bez koncowki: I walk.
+wyjasnienie: Przy "I" czasownik jest bez końcówki: I walk.
 sprawdzenie: walks/walking/to walk po "I always" sa niepoprawne
 ```
 
@@ -169,7 +176,7 @@ unit: 4 | strona 42
 zdanie:      My grandpa ____ milk for breakfast.
 poprawnie:   likes
 dystraktory: like · liking · to like
-wyjasnienie: "My grandpa" = he, wiec "likes" z koncowka -s.
+wyjasnienie: "My grandpa" = he, więc "likes" z końcówką -s.
 sprawdzenie: pozostale formy nie lacza sie z podmiotem w 3. osobie
 ```
 
@@ -178,7 +185,7 @@ unit: 4 | strona 42
 zdanie:      I sometimes play football ____ my friends.
 poprawnie:   with
 dystraktory: to · at · of
-wyjasnienie: "with" = z kims. Gram z kolegami.
+wyjasnienie: "with" = z kimś. Gram z kolegami.
 sprawdzenie: play football to/at/of my friends - zadne nie jest poprawne
 ```
 
@@ -187,7 +194,7 @@ unit: 4 | strona 42
 zdanie:      We ____ got shrimps.
 poprawnie:   have
 dystraktory: has · is · was
-wyjasnienie: Przy "we" mowimy "have got".
+wyjasnienie: Przy "we" mówimy "have got".
 sprawdzenie: has/is/was z "got" po "we" - niegramatyczne
 ```
 
@@ -209,7 +216,7 @@ unit: 5 | strona 50
 zdanie:      She can ____ criminals.
 poprawnie:   catch
 dystraktory: catches · catching · to catch
-wyjasnienie: Po "can" idzie goly czasownik: can catch.
+wyjasnienie: Po "can" idzie goły czasownik: can catch.
 sprawdzenie: can catches / can catching / can to catch - niepoprawne
 ```
 
@@ -218,7 +225,7 @@ unit: 5 | strona 50
 zdanie:      She ____ trousers and a shirt.
 poprawnie:   wears
 dystraktory: wear · wearing · to wear
-wyjasnienie: Przy "she" czasownik dostaje koncowke -s: she wears.
+wyjasnienie: Przy "she" czasownik dostaje końcówkę -s: she wears.
 sprawdzenie: she wear / she wearing / she to wear - niegramatyczne bez "is"
 ```
 
@@ -227,7 +234,7 @@ unit: 5 | strona 50
 zdanie:      He ____ got heavy boots.
 poprawnie:   has
 dystraktory: have · is · are
-wyjasnienie: Przy "he" mowimy "has got".
+wyjasnienie: Przy "he" mówimy "has got".
 sprawdzenie: he have got / he is got / he are got - niepoprawne
 ```
 
@@ -236,7 +243,7 @@ unit: 5 | strona 50
 zdanie:      These ____ his boots.
 poprawnie:   are
 dystraktory: is · am · was
-wyjasnienie: "These" = te (wiecej niz jedna rzecz), wiec "are".
+wyjasnienie: "These" = te (więcej niż jedna rzecz), więc "are".
 sprawdzenie: these is / these am / these was - niegramatyczne
 ```
 
@@ -249,7 +256,7 @@ unit: 6 | strona 57
 zdanie:      There ____ a bus station.
 poprawnie:   is
 dystraktory: are · am · be
-wyjasnienie: Jedna rzecz (a bus station) - mowimy "There is".
+wyjasnienie: Jedna rzecz (a bus station) - mówimy "There is".
 sprawdzenie: there are/am/be a bus station - niepoprawne przy liczbie pojedynczej
 ```
 
@@ -258,7 +265,7 @@ unit: 6 | strona 57
 zdanie:      There ____ healthy sandwiches at the bakery.
 poprawnie:   are
 dystraktory: is · am · was
-wyjasnienie: Wiele rzeczy (sandwiches) - mowimy "There are".
+wyjasnienie: Wiele rzeczy (sandwiches) - mówimy "There are".
 sprawdzenie: there is/am/was healthy sandwiches - niepoprawne przy liczbie mnogiej
 ```
 
@@ -267,7 +274,7 @@ unit: 6 | strona 57
 zdanie:      Let's go home ____ bus.
 poprawnie:   by
 dystraktory: in · on · with
-wyjasnienie: O srodkach transportu mowimy "by": by bus, by car.
+wyjasnienie: O środkach transportu mówimy "by": by bus, by car.
 sprawdzenie: go home in/on/with bus - zadne nie jest poprawna angielszczyzna
 ```
 
@@ -276,7 +283,7 @@ unit: 6 | strona 57
 zdanie:      What ____ your favourite place in town?
 poprawnie:   is
 dystraktory: are · am · does
-wyjasnienie: "your favourite place" to jedno miejsce, wiec "is".
+wyjasnienie: "your favourite place" to jedno miejsce, więc "is".
 sprawdzenie: what are/am/does your favourite place - niegramatyczne
 ```
 
@@ -298,7 +305,7 @@ unit: 7 | strona 67
 zdanie:      Lucy ____ playing tennis.
 poprawnie:   is
 dystraktory: are · am · be
-wyjasnienie: Lucy to jedna osoba (she), wiec "is playing".
+wyjasnienie: Lucy to jedna osoba (she), więc "is playing".
 sprawdzenie: Lucy are/am/be playing - niepoprawne
 ```
 
@@ -307,7 +314,7 @@ unit: 7 | strona 67
 zdanie:      She is ____ tennis now.
 poprawnie:   playing
 dystraktory: play · plays · to play
-wyjasnienie: Po "is" czasownik ma koncowke -ing: is playing.
+wyjasnienie: Po "is" czasownik ma końcówkę -ing: is playing.
 sprawdzenie: is play / is plays / is to play - niegramatyczne
 ```
 
@@ -316,7 +323,7 @@ unit: 7 | strona 67
 zdanie:      Anna is ____ gymnastics.
 poprawnie:   doing
 dystraktory: do · does · to do
-wyjasnienie: Po "is" dajemy forme z -ing: is doing.
+wyjasnienie: Po "is" dajemy formę z -ing: is doing.
 sprawdzenie: is do / is does / is to do - niepoprawne
 ```
 
@@ -352,7 +359,7 @@ unit: 7 | strona 67
 zdanie:      I can ____ you how to play tennis.
 poprawnie:   teach
 dystraktory: teaches · teaching · to teach
-wyjasnienie: Po "can" czasownik bez koncowki i bez "to".
+wyjasnienie: Po "can" czasownik bez końcówki i bez "to".
 sprawdzenie: can teaches / can teaching / can to teach - niegramatyczne
 ```
 
@@ -365,7 +372,7 @@ unit: 8 | strona 75
 zdanie:      He's hiking ____ the hills.
 poprawnie:   in
 dystraktory: at · under · of
-wyjasnienie: O wedrowce w gorach mowimy "in the hills".
+wyjasnienie: O wędrówce w górach mówimy "in the hills".
 sprawdzenie: hiking at/under/of the hills - zadne nie jest poprawne
 ```
 
@@ -374,7 +381,7 @@ unit: 8 | strona 75
 zdanie:      She's ____ in the pond.
 poprawnie:   fishing
 dystraktory: fish · fishes · to fish
-wyjasnienie: Po "is/'s" czasownik ma koncowke -ing: she's fishing.
+wyjasnienie: Po "is/'s" czasownik ma końcówkę -ing: she's fishing.
 sprawdzenie: she's fish / fishes / to fish - niegramatyczne
 ```
 
@@ -392,7 +399,7 @@ unit: 8 | strona 75
 zdanie:      She isn't ____ in the sea.
 poprawnie:   diving
 dystraktory: dive · dives · to dive
-wyjasnienie: Po "isn't" czasownik ma koncowke -ing.
+wyjasnienie: Po "isn't" czasownik ma końcówkę -ing.
 sprawdzenie: isn't dive / dives / to dive - niegramatyczne
 ```
 
@@ -410,7 +417,7 @@ unit: 8 | strona 83
 zdanie:      My grandma is ____ photos.
 poprawnie:   taking
 dystraktory: take · takes · to take
-wyjasnienie: Po "is" czasownik z koncowka -ing: is taking.
+wyjasnienie: Po "is" czasownik z końcówką -ing: is taking.
 sprawdzenie: is take / takes / to take - niepoprawne
 ```
 
@@ -419,7 +426,7 @@ unit: 8 | strona 83
 zdanie:      My dad is ____ cheese sandwiches.
 poprawnie:   eating
 dystraktory: eat · eats · to eat
-wyjasnienie: Po "is" dajemy forme z -ing: is eating.
+wyjasnienie: Po "is" dajemy formę z -ing: is eating.
 sprawdzenie: is eat / eats / to eat - niegramatyczne
 ```
 
@@ -437,7 +444,7 @@ unit: 8 | strona 83
 zdanie:      We ____ on the beach.
 poprawnie:   are
 dystraktory: is · am · was
-wyjasnienie: Przy "we" uzywamy "are".
+wyjasnienie: Przy "we" używamy "are".
 sprawdzenie: we is / we am / we was - niegramatyczne
 ```
 
@@ -446,7 +453,7 @@ unit: 8 | strona 83
 zdanie:      My family is ____ a picnic.
 poprawnie:   having
 dystraktory: have · has · to have
-wyjasnienie: Po "is" czasownik ma koncowke -ing: is having.
+wyjasnienie: Po "is" czasownik ma końcówkę -ing: is having.
 sprawdzenie: is have / is has / is to have - niepoprawne
 ```
 

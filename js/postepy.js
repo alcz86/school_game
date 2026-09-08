@@ -1,6 +1,18 @@
 (function () {
   const KLUCZ = 'gra-szkolna-postepy';
 
+  // Wybrany tryb odpowiedzi (wybór z czterech / wpisywanie) trzymamy pod OSOBNYM
+  // kluczem, nie w stanie postępów. Powód jest praktyczny: „🗑️ Wyczyść postępy"
+  // na ekranie rodzica kasuje KLUCZ w całości, a ustawienie sterowania nie jest
+  // postępem dziecka i nie ma powodu, żeby znikało razem z wynikami.
+  //
+  // Kształt: { "<id zestawu>": "wybor" | "wpisywanie" }. Per zestaw, nie globalnie —
+  // domyślny tryb zależy od klasy zestawu (patrz app.domyslnyTrybOdpowiedzi),
+  // więc jedna wspólna wartość narzucałaby powtórce z klasy 2 ustawienie zrobione
+  // przy zdaniach klasy 3.
+  const KLUCZ_TRYBY = 'gra-szkolna-tryb-odpowiedzi';
+  const DOZWOLONE_TRYBY = ['wybor', 'wpisywanie'];
+
   function pustyStan() {
     return { odpowiedzi: {}, bledy: {}, walki: [], dni: [] };
   }
@@ -163,7 +175,44 @@
 
     function reset() { if (mag) mag.removeItem(KLUCZ); }
 
-    return { zapiszOdpowiedz, zapiszWalke, statystyki, wagi, reset };
+    // ------------------------------------------------ zapamiętany tryb odpowiedzi
+
+    // Ta sama obrona co przy postępach — i nie wolno jej omijać. `localStorage`
+    // dziecka realnie bywa uszkodzony (uruchomiona gra z pliku, ręczne grzebanie,
+    // starsza wersja klucza), a wartość spoza listy trybów zamieniłaby rundę
+    // w tryb, którego nie ma. Każde piętro zwraca `null` = „brak wyboru",
+    // co u wołającego znaczy „użyj domyślnego dla zestawu".
+    function wczytajTryby() {
+      if (!mag) return {};
+      try {
+        const surowe = mag.getItem(KLUCZ_TRYBY);
+        if (!surowe) return {};
+        const s = JSON.parse(surowe);
+        return jestObiektem(s) ? s : {};
+      } catch (e) {
+        return {};
+      }
+    }
+
+    function trybOdpowiedzi(idZestawu) {
+      const t = wczytajTryby()[idZestawu];
+      return DOZWOLONE_TRYBY.indexOf(t) >= 0 ? t : null;
+    }
+
+    function zapiszTrybOdpowiedzi(idZestawu, tryb) {
+      if (!idZestawu || DOZWOLONE_TRYBY.indexOf(tryb) < 0) return false;
+      const tryby = wczytajTryby();
+      tryby[idZestawu] = tryb;
+      if (mag) {
+        try { mag.setItem(KLUCZ_TRYBY, JSON.stringify(tryby)); } catch (e) { /* pełny magazyn */ }
+      }
+      return true;
+    }
+
+    return {
+      zapiszOdpowiedz, zapiszWalke, statystyki, wagi, reset,
+      trybOdpowiedzi, zapiszTrybOdpowiedzi,
+    };
   }
 
   const api = { utworz };

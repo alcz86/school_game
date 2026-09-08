@@ -2,7 +2,14 @@
 
 Źródło: album Google Photos „ANGIELSKI 3" (94 zdjęcia podręcznika) — strony ćwiczeń wewnątrz unitów,
 pominięte w partii 1. Numery stron = numery wydrukowane na stronie podręcznika.
-**Status: w trakcie budowania — plik dopisywany przyrostowo.**
+**Status: zatwierdzone przez matkę z jednym wyjątkiem. Materiał wdrożony w `dane/zdania.js`.**
+
+> **Wyjątek:** „It ____ got a toothache." (strona 15) NIE wchodzi do gry — w podręczniku jest tam
+> kolorowy prostokąt zamiast słowa, więc rzeczownik był rekonstrukcją, a nie przepisaniem.
+> Do gry weszło **45 z 46** pozycji tej partii.
+>
+> Zgodność dokumentu z danymi pilnuje `tests/zdania-zgodnosc-z-dokumentem.test.js` — pole po polu.
+> Wyjaśnienia zapisano poprawną polszczyzną z diakrytykami; dokument i dane muszą być identyczne.
 
 ---
 
@@ -31,7 +38,7 @@ unit: 1 | strona 11
 zdanie:      ____ Kevin an adult?
 poprawnie:   Is
 dystraktory: Are · Am · Does
-wyjasnienie: Pytanie o jedna osobe (he) zaczynamy od "Is".
+wyjasnienie: Pytanie o jedną osobę (he) zaczynamy od "Is".
 sprawdzenie: Are/Am/Does Kevin an adult - wszystkie niegramatyczne
 ```
 
@@ -40,7 +47,7 @@ unit: 1 | strona 13
 zdanie:      She is ____ a white blouse and a pink jumper.
 poprawnie:   wearing
 dystraktory: wear · wears · to wear
-wyjasnienie: Po "is" czasownik ma koncowke -ing: is wearing.
+wyjasnienie: Po "is" czasownik ma końcówkę -ing: is wearing.
 sprawdzenie: is wear / is wears / is to wear - niegramatyczne
 ```
 
@@ -49,7 +56,7 @@ unit: 1 | strona 13
 zdanie:      My eyes ____ black.
 poprawnie:   are
 dystraktory: is · am · be
-wyjasnienie: "eyes" to liczba mnoga, wiec "are".
+wyjasnienie: "eyes" to liczba mnoga, więc "are".
 sprawdzenie: eyes is / eyes am / eyes be - niepoprawne
 ```
 
@@ -58,7 +65,7 @@ unit: 1 | strona 13
 zdanie:      My hair ____ brown.
 poprawnie:   is
 dystraktory: are · am · be
-wyjasnienie: "hair" traktujemy jak jedna rzecz, wiec "is".
+wyjasnienie: "hair" traktujemy jak jedną rzecz, więc "is".
 sprawdzenie: hair are / hair am / hair be - niegramatyczne
 ```
 
@@ -71,7 +78,7 @@ unit: 2 | strona 15
 zdanie:      They ____ got a fever.
 poprawnie:   have
 dystraktory: has · is · was
-wyjasnienie: Przy "they" mowimy "have got".
+wyjasnienie: Przy "they" mówimy "have got".
 sprawdzenie: they has got / is got / was got - niepoprawne
 ```
 
@@ -89,7 +96,7 @@ unit: 2 | strona 19
 zdanie:      I ____ chocolate every day.
 poprawnie:   eat
 dystraktory: eats · eating · to eat
-wyjasnienie: Przy "I" czasownik jest bez koncowki: I eat.
+wyjasnienie: Przy "I" czasownik jest bez końcówki: I eat.
 sprawdzenie: I eats / I eating / I to eat - wszystkie niegramatyczne
 ```
 
@@ -107,7 +114,7 @@ unit: 2 | strona 19
 zdanie:      He's got a runny nose. Give ____ some tissues.
 poprawnie:   him
 dystraktory: he · his · he's
-wyjasnienie: Po czasowniku "give" uzywamy formy "him", nie "he".
+wyjasnienie: Po czasowniku "give" używamy formy "him", nie "he".
 sprawdzenie: give he / give his / give he's some tissues - niegramatyczne
 ```
 
@@ -116,7 +123,7 @@ unit: 2 | strona 21
 zdanie:      My name is Chara and I live ____ India.
 poprawnie:   in
 dystraktory: on · at · to
-wyjasnienie: O mieszkaniu w kraju mowimy "live in": live in India.
+wyjasnienie: O mieszkaniu w kraju mówimy "live in": live in India.
 sprawdzenie: live on / at / to India - zadne nie jest poprawna angielszczyzna
 ```
 
@@ -134,7 +141,7 @@ unit: 2 | strona 21
 zdanie:      We ____ friends in the zoo.
 poprawnie:   meet
 dystraktory: meets · meeting · to meet
-wyjasnienie: Przy "we" czasownik jest bez koncowki: we meet.
+wyjasnienie: Przy "we" czasownik jest bez końcówki: we meet.
 sprawdzenie: we meets / we meeting / we to meet - niepoprawne
 ```
 
@@ -156,7 +163,7 @@ unit: 3 | strona 27
 zdanie:      Mum, what ____ you got?
 poprawnie:   have
 dystraktory: has · is · are
-wyjasnienie: Przy "you" mowimy "have got": what have you got?
+wyjasnienie: Przy "you" mówimy "have got": what have you got?
 sprawdzenie: what has/is/are you got - wszystkie niegramatyczne
 ```
 
@@ -165,7 +172,7 @@ unit: 3 | strona 27
 zdanie:      Tom and Lucy ____ a red mouse.
 poprawnie:   want
 dystraktory: wants · wanting · to want
-wyjasnienie: Dwie osoby = liczba mnoga, czasownik bez koncowki -s.
+wyjasnienie: Dwie osoby = liczba mnoga, czasownik bez końcówki -s.
 sprawdzenie: Tom and Lucy wants / wanting / to want - niepoprawne
 ```
 
@@ -183,7 +190,7 @@ unit: 3 | strona 31
 zdanie:      There ____ any old gadgets in this museum.
 poprawnie:   aren't
 dystraktory: isn't · am not · hasn't
-wyjasnienie: "gadgets" to liczba mnoga, wiec "There aren't".
+wyjasnienie: "gadgets" to liczba mnoga, więc "There aren't".
 sprawdzenie: there isn't / am not / hasn't any gadgets - niepoprawne
 ```
 
@@ -201,7 +208,7 @@ unit: 3 | strona 31
 zdanie:      You can walk there and ____ at the room.
 poprawnie:   look
 dystraktory: looks · looking · to look
-wyjasnienie: Po "can" oba czasowniki sa w formie podstawowej: walk and look.
+wyjasnienie: Po "can" oba czasowniki są w formie podstawowej: walk and look.
 sprawdzenie: can looks / looking / to look - niepoprawne
 ```
 
@@ -223,7 +230,7 @@ unit: 4 | strona 37
 zdanie:      This lunch is too big ____ you.
 poprawnie:   for
 dystraktory: to · at · of
-wyjasnienie: "too big for somebody" - dla kogos mowimy "for".
+wyjasnienie: "too big for somebody" - dla kogoś mówimy "for".
 sprawdzenie: too big to/at/of you - zadne nie jest poprawna angielszczyzna
 ```
 
@@ -232,7 +239,7 @@ unit: 4 | strona 37
 zdanie:      Oh, I ____ it very much.
 poprawnie:   like
 dystraktory: likes · liking · to like
-wyjasnienie: Przy "I" czasownik jest bez koncowki -s.
+wyjasnienie: Przy "I" czasownik jest bez końcówki -s.
 sprawdzenie: I likes / I liking / I to like - niepoprawne
 ```
 
@@ -241,7 +248,7 @@ unit: 4 | strona 39
 zdanie:      Tobias and Mia ____ meat.
 poprawnie:   hate
 dystraktory: hates · hating · to hate
-wyjasnienie: Dwie osoby = liczba mnoga, czasownik bez koncowki -s.
+wyjasnienie: Dwie osoby = liczba mnoga, czasownik bez końcówki -s.
 sprawdzenie: Tobias and Mia hates / hating / to hate - niegramatyczne
 ```
 
@@ -250,7 +257,7 @@ unit: 4 | strona 39
 zdanie:      Philip likes vegetables. He always ____ carrots for dinner.
 poprawnie:   has
 dystraktory: have · haves · having
-wyjasnienie: Przy "he" czasownik "have" zmienia sie w "has".
+wyjasnienie: Przy "he" czasownik "have" zmienia się w "has".
 sprawdzenie: he have / haves / having carrots - niepoprawne
 ```
 
@@ -272,7 +279,7 @@ unit: 5 | strona 48
 zdanie:      Mia is a teacher. She ____ children.
 poprawnie:   teaches
 dystraktory: teach · teaching · to teach
-wyjasnienie: Przy "she" czasownik "teach" dostaje koncowke -es.
+wyjasnienie: Przy "she" czasownik "teach" dostaje końcówkę -es.
 sprawdzenie: she teach / teaching / to teach children - niegramatyczne
 ```
 
@@ -281,7 +288,7 @@ unit: 5 | strona 48
 zdanie:      Luke is a police officer. He ____ criminals.
 poprawnie:   catches
 dystraktory: catch · catching · to catch
-wyjasnienie: Przy "he" czasownik "catch" dostaje koncowke -es.
+wyjasnienie: Przy "he" czasownik "catch" dostaje końcówkę -es.
 sprawdzenie: he catch / catching / to catch criminals - niepoprawne
 ```
 
@@ -290,7 +297,7 @@ unit: 5 | strona 53
 zdanie:      A shop assistant ____ food in the supermarket.
 poprawnie:   sells
 dystraktory: sell · selling · to sell
-wyjasnienie: Podmiot w 3. osobie (a shop assistant) - czasownik z koncowka -s.
+wyjasnienie: Podmiot w 3. osobie (a shop assistant) - czasownik z końcówką -s.
 sprawdzenie: assistant sell / selling / to sell - niegramatyczne
 ```
 
@@ -299,7 +306,7 @@ unit: 5 | strona 53
 zdanie:      This chef ____ yummy meals.
 poprawnie:   cooks
 dystraktory: cook · cooking · to cook
-wyjasnienie: "This chef" = he, wiec czasownik z koncowka -s.
+wyjasnienie: "This chef" = he, więc czasownik z końcówką -s.
 sprawdzenie: chef cook / cooking / to cook - niepoprawne
 ```
 
@@ -330,7 +337,7 @@ unit: 6 | strona 61
 zdanie:      I'm from Aberdeen, but sometimes I ____ London.
 poprawnie:   visit
 dystraktory: visits · visiting · to visit
-wyjasnienie: Przy "I" czasownik jest bez koncowki -s.
+wyjasnienie: Przy "I" czasownik jest bez końcówki -s.
 sprawdzenie: I visits / I visiting / I to visit London - niepoprawne
 ```
 
@@ -361,7 +368,7 @@ unit: 7 | strona 71
 zdanie:      In this photo, I am ____ a horse.
 poprawnie:   riding
 dystraktory: ride · rides · to ride
-wyjasnienie: Po "I am" czasownik ma koncowke -ing: am riding.
+wyjasnienie: Po "I am" czasownik ma końcówkę -ing: am riding.
 sprawdzenie: am ride / am rides / am to ride - niepoprawne
 ```
 
@@ -370,7 +377,7 @@ unit: 7 | strona 71
 zdanie:      I am ____ and playing ice hockey with my friends.
 poprawnie:   skating
 dystraktory: skate · skates · to skate
-wyjasnienie: Po "am" oba czasowniki maja -ing: skating and playing.
+wyjasnienie: Po "am" oba czasowniki mają -ing: skating and playing.
 sprawdzenie: am skate / skates / to skate - niegramatyczne
 ```
 
@@ -379,7 +386,7 @@ unit: 7 | strona 71
 zdanie:      Ice hockey is very popular ____ the USA.
 poprawnie:   in
 dystraktory: on · at · of
-wyjasnienie: O kraju mowimy "in": in the USA.
+wyjasnienie: O kraju mówimy "in": in the USA.
 sprawdzenie: popular on/at/of the USA - zadne nie jest poprawna angielszczyzna
 ```
 
@@ -392,7 +399,7 @@ unit: 8 | strona 79
 zdanie:      It's Monday. I am ____ my friends in the countryside.
 poprawnie:   meeting
 dystraktory: meet · meets · to meet
-wyjasnienie: Po "I am" czasownik ma koncowke -ing: am meeting.
+wyjasnienie: Po "I am" czasownik ma końcówkę -ing: am meeting.
 sprawdzenie: am meet / am meets / am to meet - niegramatyczne
 ```
 
@@ -401,7 +408,7 @@ unit: 8 | strona 79 (Phonics Fun)
 zdanie:      Three thin thieves ____ thinking.
 poprawnie:   are
 dystraktory: is · am · be
-wyjasnienie: "Three thieves" to liczba mnoga, wiec "are thinking".
+wyjasnienie: "Three thieves" to liczba mnoga, więc "are thinking".
 sprawdzenie: thieves is / am / be thinking - niepoprawne
 ```
 
@@ -410,7 +417,7 @@ unit: 8 | strona 81
 zdanie:      I am ____ holiday in Tatra National Park.
 poprawnie:   on
 dystraktory: in · at · to
-wyjasnienie: "byc na wakacjach" to "be on holiday".
+wyjasnienie: "być na wakacjach" to "be on holiday".
 sprawdzenie: in/at/to holiday - zadne nie jest poprawna angielszczyzna
 ```
 
@@ -419,7 +426,7 @@ unit: 8 | strona 81
 zdanie:      My dad is ____ on a big stone.
 poprawnie:   standing
 dystraktory: stand · stands · to stand
-wyjasnienie: Po "is" czasownik ma koncowke -ing: is standing.
+wyjasnienie: Po "is" czasownik ma końcówkę -ing: is standing.
 sprawdzenie: is stand / is stands / is to stand - niegramatyczne
 ```
 
@@ -428,7 +435,7 @@ unit: 8 | strona 81
 zdanie:      I'm not ____ shoes because I'm sitting in the sand.
 poprawnie:   wearing
 dystraktory: wear · wears · to wear
-wyjasnienie: Po "am not" czasownik ma koncowke -ing.
+wyjasnienie: Po "am not" czasownik ma końcówkę -ing.
 sprawdzenie: am not wear / wears / to wear - niepoprawne
 ```
 
@@ -437,7 +444,7 @@ unit: 8 | strona 81
 zdanie:      I'm ____ in the sand.
 poprawnie:   sitting
 dystraktory: sit · sits · to sit
-wyjasnienie: Po "I'm" (= I am) czasownik ma koncowke -ing.
+wyjasnienie: Po "I'm" (= I am) czasownik ma końcówkę -ing.
 sprawdzenie: I'm sit / sits / to sit - niegramatyczne
 ```
 
@@ -446,7 +453,7 @@ unit: 8 | strona 81
 zdanie:      Why ____ Andrea wearing summer clothes?
 poprawnie:   is
 dystraktory: are · am · does
-wyjasnienie: Andrea to jedna osoba (she), wiec "is wearing".
+wyjasnienie: Andrea to jedna osoba (she), więc "is wearing".
 sprawdzenie: why are/am/does Andrea wearing - wszystkie niegramatyczne
 ```
 

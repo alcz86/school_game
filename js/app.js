@@ -8,7 +8,10 @@
   // kolejki (patrz walka.js), więc odstęp jest stały niezależnie od tej liczby.
   const PYTAN_NA_RUNDE = 12;
 
+  // Domyślna treść komunikatu o pustym rozdziale — dla słówek. Zestaw zdań dostaje
+  // własną wersję (patrz `brakMaterialu`); stała zostaje, bo jest częścią API modułu.
   const BRAK_MATERIALU = 'Ten rozdział nie ma jeszcze słówek';
+  const BRAK_MATERIALU_ZDANIA = 'Ten rozdział nie ma jeszcze zdań';
 
   // Most między środowiskami: w przeglądarce moduły wiszą pod window.GRA.*
   // (bo pliki ładują się jako zwykłe skrypty, bez modułów), w Node — przez require
@@ -151,11 +154,33 @@
   }
 
   const POTWORY = ['👾', '👹', '🐉', '🦑', '🧟', '🐲'];
+  // Odznaka po wygranej. `ODZNAKI` jest kluczowane TRYBEM, a tryb „angielski"
+  // ma dziś dwa różne rodzaje materiału — po rundzie zdań dziecko dostawało
+  // „Mistrza słówek", czyli nagrodę za coś, czego w tej rundzie w ogóle nie robiło.
+  // Dlatego odznakę wybiera funkcja, która widzi także ZESTAW, a nie sama mapa.
   const ODZNAKI = {
     matematyka: '🏅 Mistrz tabliczki',
     ortografia: '🏅 Mistrz ortografii',
     angielski: '🏅 Mistrz słówek',
   };
+  const ODZNAKA_ZDANIA = '🏅 Mistrz zdań';
+
+  function odznakaDla(tryb, idPoziomu) {
+    if (tryb === 'angielski') {
+      const zestaw = zestawAngielski(idPoziomu);
+      if (zestaw && zestaw.zdania) return ODZNAKA_ZDANIA;
+    }
+    return ODZNAKI[tryb] || '🏅 Odznaka';
+  }
+
+  // Komunikat o pustym rozdziale musi mówić o tym materiale, który dziecko wybrało.
+  // Dziś nieosiągalny (lista rozdziałów powstaje z danych, więc pusty rozdział się
+  // nie wyświetli), ale to zapalnik: pierwszy zestaw z rozdziałem opisanym ręcznie
+  // pokazałby dziecku na ekranie zdań, że „nie ma jeszcze słówek".
+  function brakMaterialu(idZestawu) {
+    const zestaw = zestawAngielski(idZestawu);
+    return zestaw && zestaw.zdania ? BRAK_MATERIALU_ZDANIA : BRAK_MATERIALU;
+  }
 
   function potworDla(tryb, idPoziomu) {
     const lista = poziomyDla(tryb);
@@ -177,17 +202,38 @@
   }
 
   // Wybrany tryb odpowiedzi bieżącej rundy. Żyje TU, w module — nie w DOM.
-  // `null` znaczy „jeszcze nie wybrano", czyli: użyj domyślnego dla zestawu.
+  // `null` znaczy „jeszcze nie wybrano", czyli: użyj zapamiętanego, a jak go nie
+  // ma — domyślnego dla zestawu.
   let trybOdpowiedzi = null;
 
+  // DECYZJA MATKI (2026-09-08): tryb ma być PAMIĘTANY między rundami i po zamknięciu
+  // karty — syn ustawia raz. Wcześniej każde wejście na ekran rozdziałów wracało do
+  // domyślnego. Recenzent argumentował, że reset był bezpieczniejszy (dziecko nie
+  // zostaje na stałe w łatwiejszym trybie bez wiedzy matki); matka zna ten argument
+  // i wybrała pamiętanie. Przeciwwagą jest to, że aktualny tryb widać teraz WPROST
+  // na ekranie wyboru rozdziału — patrz `opisAktualnegoTrybu`.
+  //
+  // Kolejność źródeł jest istotna: wybór z tej sesji > zapamiętany > domyślny wg klasy.
   function trybOdpowiedziDla(idZestawu) {
-    return trybOdpowiedzi || domyslnyTrybOdpowiedzi(idZestawu);
+    if (TRYBY_ODPOWIEDZI.includes(trybOdpowiedzi)) return trybOdpowiedzi;
+    // `trybOdpowiedzi` z magazynu przechodzi walidację po stronie postepy.js
+    // (śmieciowa wartość i uszkodzony JSON dają null), więc tutaj wystarczy `||`.
+    return postepy.trybOdpowiedzi(idZestawu) || domyslnyTrybOdpowiedzi(idZestawu);
   }
 
-  function ustawTrybOdpowiedzi(t) {
+  function opisAktualnegoTrybu(t) {
+    return 'Teraz grasz: ' + (NAZWY_TRYBOW_ODPOWIEDZI[t] || t);
+  }
+
+  // `idZestawu` jest opcjonalny tylko po to, żeby stare wywołania nie wybuchały —
+  // bez niego wybór działa na bieżącą rundę, ale NIE zostaje zapamiętany.
+  function ustawTrybOdpowiedzi(t, idZestawu) {
     if (!TRYBY_ODPOWIEDZI.includes(t)) return false;
     trybOdpowiedzi = t;
+    if (idZestawu) postepy.zapiszTrybOdpowiedzi(idZestawu, t);
     if (typeof document === 'undefined') return true;
+    const opis = document.querySelector('.przelacznik-aktualny');
+    if (opis) opis.textContent = opisAktualnegoTrybu(t);
     // Przemalowujemy sam przełącznik, bez pełnego re-renderu ekranu — pełny render
     // resetowałby przewinięcie listy rozdziałów w połowie ekranu.
     document.querySelectorAll('.btn-tryb[data-tryb-odp]').forEach((b) => {
@@ -212,6 +258,10 @@
         '<button class="btn-tryb' + (t === aktywny ? ' btn-tryb-aktywny' : '') + '"' +
         ' data-tryb-odp="' + t + '" aria-pressed="' + (t === aktywny) + '">' +
         esc(NAZWY_TRYBOW_ODPOWIEDZI[t]) + '</button>').join('') +
+      // Tryb jest teraz pamiętany, więc dziecko może grać w ustawieniu wybranym
+      // tydzień temu. Ta linijka mówi WPROST, w czym gra — matka ma to zobaczyć
+      // bez klikania w przełącznik.
+      '<p class="przelacznik-aktualny">' + esc(opisAktualnegoTrybu(aktywny)) + '</p>' +
       '</div>';
   }
 
@@ -219,9 +269,13 @@
     const sekcja = document.getElementById('ekran-wybor-rozdzialu');
     const numery = rozdzialyAngielski(idZestawu);
     sekcja.dataset.zestaw = idZestawu;
-    // Każde wejście na ten ekran zaczyna się od domyślnego trybu tego zestawu —
-    // matka prosiła o wybór PRZY KAŻDEJ RUNDZIE, a nie o ustawienie na stałe.
-    trybOdpowiedzi = domyslnyTrybOdpowiedzi(idZestawu);
+    // Każde wejście na ten ekran startuje od trybu ZAPAMIĘTANEGO dla tego zestawu
+    // (a gdy go nie ma — domyślnego wg klasy). Wcześniej był tu twardy reset do
+    // domyślnego; matka zdecydowała inaczej, patrz komentarz przy trybOdpowiedziDla.
+    // Zerujemy najpierw wybór z sesji, żeby ustawienie zrobione przy INNYM zestawie
+    // nie przeciekło na ten.
+    trybOdpowiedzi = null;
+    trybOdpowiedzi = trybOdpowiedziDla(idZestawu);
     sekcja.innerHTML =
       '<button class="wstecz" data-akcja="wybor-poziomu">← Wróć</button>' +
       // Ekran obsługuje dwa rodzaje materiału — nagłówek musi mówić o tym,
@@ -301,7 +355,7 @@
     if (!pytania.length) {
       // NIGDY nowaWalka([]) — dałoby stan bez pytań, z którego nie ma wyjścia.
       if (typeof document === 'undefined') return false;
-      if (tryb === 'angielski') renderujWyborRozdzialu(idPoziomu, BRAK_MATERIALU);
+      if (tryb === 'angielski') renderujWyborRozdzialu(idPoziomu, brakMaterialu(idPoziomu));
       else renderujWyborPoziomu(tryb);
       return false;
     }
@@ -478,7 +532,7 @@
     if (wygrana) {
       html +=
         '<h2 class="wynik-tytul">Potwór pokonany! 🎉</h2>' +
-        '<p class="odznaka">' + esc(ODZNAKI[kontekst.tryb] || '🏅 Odznaka') + '</p>' +
+        '<p class="odznaka">' + esc(odznakaDla(kontekst.tryb, kontekst.idPoziomu)) + '</p>' +
         '<ul class="statystyki-rundy">' +
         '<li>Trafienia: <strong>' + trafienia + '</strong></li>' +
         '<li>Najdłuższe combo: <strong>' + najdluzszeCombo + '</strong></li>' +
@@ -806,7 +860,9 @@
         }
         const btnTryb = e.target.closest('.btn-tryb[data-tryb-odp]');
         if (btnTryb) {
-          ustawTrybOdpowiedzi(btnTryb.dataset.trybOdp);
+          // Id zestawu bierzemy z ekranu, bo bez niego wybór nie zostałby zapamiętany.
+          const ekranRozdzialow = document.getElementById('ekran-wybor-rozdzialu');
+          ustawTrybOdpowiedzi(btnTryb.dataset.trybOdp, ekranRozdzialow && ekranRozdzialow.dataset.zestaw);
           return;
         }
         const zakres = e.target.closest('.btn-zakres[data-rozdzial]');
@@ -868,7 +924,8 @@
     renderujRodzica, nazwaPoziomu, opisBledu, wierszeSkutecznosci, wierszeAngielski,
     formatujDate, formatujDni, zakresDoMaSens, opisPomylek,
     TRYBY_ODPOWIEDZI, domyslnyTrybOdpowiedzi, rozdzialyAngielski, modulAngielski,
-    naglowekRozdzialow,
+    naglowekRozdzialow, brakMaterialu, odznakaDla,
+    ustawTrybOdpowiedzi, trybOdpowiedziDla, opisAktualnegoTrybu,
   };
   if (typeof window !== 'undefined') {
     window.GRA = window.GRA || {};

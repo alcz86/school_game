@@ -80,6 +80,13 @@ h1 { font-size: clamp(1.75rem, 7vw, 2.5rem); text-align: center; margin: .5rem 0
 }
 .btn-tryb-aktywny { color: var(--tlo); background: var(--akcent); border-color: var(--akcent); }
 .btn-tryb:hover, .btn-tryb:focus-visible { outline: none; filter: brightness(1.1); }
+/* Tryb jest teraz PAMIĘTANY między rundami, więc dziecko może wejść w ustawieniu
+   sprzed tygodnia. Ta linijka mówi wprost, w czym gra — matka ma to widzieć bez
+   klikania. Pełna szerokość (flex-basis 100%), żeby na 320 px nie ścisnęła przycisków. */
+.przelacznik-aktualny {
+  flex: 1 0 100%; margin: .25rem 0 0;
+  font-size: .9rem; font-weight: 600; color: var(--akcent);
+}
 
 .rozdzialy { display: grid; gap: .75rem; }
 .rozdzial {
